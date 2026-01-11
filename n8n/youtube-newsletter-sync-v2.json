@@ -1,0 +1,887 @@
+{
+    "name": "YouTube Newsletter Sync (v2)",
+    "nodes": [
+        {
+            "parameters": {
+                "rule": {
+                    "interval": [
+                        {
+                            "field": "hours",
+                            "hoursInterval": 6
+                        }
+                    ]
+                }
+            },
+            "id": "schedule",
+            "name": "Schedule (Every 6 Hours)",
+            "type": "n8n-nodes-base.scheduleTrigger",
+            "typeVersion": 1,
+            "position": [
+                0,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "insert",
+                "schema": "public",
+                "table": "sync_runs",
+                "columns": "status",
+                "values": "running"
+            },
+            "id": "create-sync-run",
+            "name": "Create Sync Run",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                200,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "schema": "public",
+                "table": "channels",
+                "returnAll": true,
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "approved",
+                            "condition": "equals",
+                            "value": "true"
+                        }
+                    ]
+                }
+            },
+            "id": "fetch-channels",
+            "name": "Fetch Approved Channels",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                400,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "batchSize": 1,
+                "options": {}
+            },
+            "id": "loop-channels",
+            "name": "Loop Channels",
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                600,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "jsCode": "// Calculate publishedAfter with 2-hour overlap\nconst channel = $input.item.json;\nconst watermark = channel.last_synced_video_published_at;\n\nlet publishedAfter;\nif (watermark) {\n  // 2 hour overlap to catch delayed indexing\n  publishedAfter = new Date(new Date(watermark).getTime() - 2 * 60 * 60 * 1000).toISOString();\n} else {\n  // First sync: 7 days back\n  publishedAfter = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();\n}\n\nreturn {\n  channelId: channel.youtube_channel_id,\n  channelDbId: channel.id,\n  channelName: channel.name,\n  publishedAfter,\n  nextPageToken: null,\n  allVideoIds: []\n};"
+            },
+            "id": "prepare-search",
+            "name": "Prepare Search Params",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                800,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://www.googleapis.com/youtube/v3/search",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleApi",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "part",
+                            "value": "snippet"
+                        },
+                        {
+                            "name": "channelId",
+                            "value": "={{ $json.channelId }}"
+                        },
+                        {
+                            "name": "type",
+                            "value": "video"
+                        },
+                        {
+                            "name": "order",
+                            "value": "date"
+                        },
+                        {
+                            "name": "publishedAfter",
+                            "value": "={{ $json.publishedAfter }}"
+                        },
+                        {
+                            "name": "videoDuration",
+                            "value": "long"
+                        },
+                        {
+                            "name": "maxResults",
+                            "value": "50"
+                        },
+                        {
+                            "name": "pageToken",
+                            "value": "={{ $json.nextPageToken || '' }}"
+                        }
+                    ]
+                }
+            },
+            "id": "youtube-search",
+            "name": "YouTube Search",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                1000,
+                0
+            ],
+            "credentials": {
+                "googleApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Google API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Collect video IDs and check for more pages\nconst input = $input.item.json;\nconst searchResults = input.items || [];\nconst allVideoIds = [...(input.allVideoIds || []), ...searchResults.map(v => v.id.videoId)];\n\nif (input.nextPageToken && searchResults.length > 0) {\n  // More pages available\n  return {\n    ...input,\n    allVideoIds,\n    nextPageToken: input.nextPageToken,\n    hasMore: true\n  };\n} else {\n  // All pages fetched\n  return {\n    channelDbId: input.channelDbId,\n    channelName: input.channelName,\n    allVideoIds,\n    hasMore: false\n  };\n}"
+            },
+            "id": "collect-video-ids",
+            "name": "Collect Video IDs",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1200,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "conditions": {
+                    "boolean": [
+                        {
+                            "value1": "={{ $json.allVideoIds.length > 0 }}",
+                            "value2": true
+                        }
+                    ]
+                }
+            },
+            "id": "check-videos",
+            "name": "Has Videos?",
+            "type": "n8n-nodes-base.if",
+            "typeVersion": 1,
+            "position": [
+                1400,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://www.googleapis.com/youtube/v3/videos",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "googleApi",
+                "sendQuery": true,
+                "queryParameters": {
+                    "parameters": [
+                        {
+                            "name": "part",
+                            "value": "snippet,contentDetails"
+                        },
+                        {
+                            "name": "id",
+                            "value": "={{ $json.allVideoIds.join(',') }}"
+                        }
+                    ]
+                }
+            },
+            "id": "batch-video-details",
+            "name": "Batch Video Details",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                1600,
+                0
+            ],
+            "credentials": {
+                "googleApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Google API"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Parse duration and filter 30+ min, format for Supabase\nfunction parseDuration(iso8601) {\n  const match = iso8601.match(/PT(?:(\\d+)H)?(?:(\\d+)M)?(?:(\\d+)S)?/);\n  if (!match) return 0;\n  return parseInt(match[1] || 0) * 3600 + parseInt(match[2] || 0) * 60 + parseInt(match[3] || 0);\n}\n\nconst channelDbId = $('Collect Video IDs').item.json.channelDbId;\nconst channelName = $('Collect Video IDs').item.json.channelName;\nconst items = $json.items || [];\nconst minDuration = $('Workflow Configuration')?.item?.json?.minDurationMinutes || 30;\n\nconst videos = items\n  .map(v => ({\n    youtube_video_id: v.id,\n    channel_id: channelDbId,\n    title: v.snippet.title,\n    description: v.snippet.description,\n    published_at: v.snippet.publishedAt,\n    duration_seconds: parseDuration(v.contentDetails.duration),\n    thumbnail_url: v.snippet.thumbnails.high?.url || v.snippet.thumbnails.medium?.url,\n    channel_name: v.snippet.channelTitle || channelName\n  }))\n  .filter(v => v.duration_seconds >= minDuration * 60);\n\nreturn videos;"
+            },
+            "id": "parse-filter-videos",
+            "name": "Parse & Filter Videos",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                1800,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "upsert",
+                "schema": "public",
+                "table": "videos",
+                "columns": "youtube_video_id,channel_id,title,description,published_at,duration_seconds,thumbnail_url,channel_name",
+                "conflictColumns": "youtube_video_id",
+                "updateColumns": "title,description,thumbnail_url,channel_name"
+            },
+            "id": "upsert-videos",
+            "name": "Upsert Videos",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                2000,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "schema": "public",
+                "table": "channels",
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "id",
+                            "value": "={{ $('Collect Video IDs').item.json.channelDbId }}"
+                        }
+                    ]
+                },
+                "columns": "last_synced_video_published_at",
+                "values": "={{ $('Parse & Filter Videos').all().map(v => new Date(v.json.published_at)).sort((a,b) => b-a)[0]?.toISOString() || new Date().toISOString() }}"
+            },
+            "id": "update-watermark",
+            "name": "Update Channel Watermark",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                2200,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "schema": "public",
+                "table": "videos",
+                "returnAll": false,
+                "limit": 50,
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "transcript_status",
+                            "condition": "equals",
+                            "value": "pending"
+                        },
+                        {
+                            "column": "transcript_attempts",
+                            "condition": "lessThan",
+                            "value": "3"
+                        }
+                    ]
+                }
+            },
+            "id": "fetch-pending-transcripts",
+            "name": "Fetch Pending Transcripts",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                2400,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "batchSize": 1,
+                "options": {}
+            },
+            "id": "loop-transcripts",
+            "name": "Loop Transcripts",
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                2600,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "url": "={{ 'https://transcriptapi.com/api/v1/transcript/' + $json.youtube_video_id }}",
+                "options": {
+                    "timeout": 30000
+                }
+            },
+            "id": "fetch-transcript",
+            "name": "Fetch Transcript",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                2800,
+                0
+            ],
+            "continueOnFail": true
+        },
+        {
+            "parameters": {
+                "jsCode": "// Handle transcript response\nconst video = $('Loop Transcripts').item.json;\nconst response = $input.item.json;\n\nif (response.error || !response.transcript) {\n  // Check if permanently unavailable\n  const isUnavailable = response.error?.includes('no transcript') || response.status === 404;\n  return {\n    id: video.id,\n    transcript_status: isUnavailable ? 'unavailable' : 'failed',\n    transcript_error: response.error || 'No transcript found',\n    transcript_attempts: video.transcript_attempts + 1\n  };\n} else {\n  return {\n    id: video.id,\n    transcript_text: response.transcript,\n    transcript_status: 'success',\n    transcript_error: null,\n    transcript_attempts: video.transcript_attempts + 1,\n    transcript_fetched_at: new Date().toISOString()\n  };\n}"
+            },
+            "id": "process-transcript",
+            "name": "Process Transcript Result",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                3000,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "schema": "public",
+                "table": "videos",
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "id",
+                            "value": "={{ $json.id }}"
+                        }
+                    ]
+                },
+                "columns": "transcript_text,transcript_status,transcript_error,transcript_attempts,transcript_fetched_at"
+            },
+            "id": "update-transcript",
+            "name": "Update Transcript Status",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                3200,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "getAll",
+                "schema": "public",
+                "table": "videos",
+                "returnAll": false,
+                "limit": 20,
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "analysis_status",
+                            "condition": "equals",
+                            "value": "pending"
+                        },
+                        {
+                            "column": "transcript_status",
+                            "condition": "equals",
+                            "value": "success"
+                        },
+                        {
+                            "column": "status",
+                            "condition": "equals",
+                            "value": "selected"
+                        },
+                        {
+                            "column": "analysis_attempts",
+                            "condition": "lessThan",
+                            "value": "3"
+                        }
+                    ]
+                }
+            },
+            "id": "fetch-pending-analysis",
+            "name": "Fetch Pending Analysis (Selected Only)",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                3400,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "batchSize": 1,
+                "options": {}
+            },
+            "id": "loop-analysis",
+            "name": "Loop Analysis",
+            "type": "n8n-nodes-base.splitInBatches",
+            "typeVersion": 3,
+            "position": [
+                3600,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "url": "https://openrouter.ai/api/v1/chat/completions",
+                "method": "POST",
+                "authentication": "predefinedCredentialType",
+                "nodeCredentialType": "httpHeaderAuth",
+                "sendBody": true,
+                "bodyParameters": {
+                    "parameters": [
+                        {
+                            "name": "model",
+                            "value": "google/gemini-flash-1.5"
+                        },
+                        {
+                            "name": "messages",
+                            "value": "=[{\"role\": \"system\", \"content\": \"You are an expert at analyzing podcast transcripts for newsletter content. Provide a concise summary, key takeaways, and notable quotes.\"}, {\"role\": \"user\", \"content\": \"Analyze this podcast transcript:\\n\\n\" + $json.transcript_text.substring(0, 15000)}]"
+                        }
+                    ]
+                }
+            },
+            "id": "run-ai-analysis",
+            "name": "Run AI Analysis (OpenRouter)",
+            "type": "n8n-nodes-base.httpRequest",
+            "typeVersion": 4,
+            "position": [
+                3800,
+                0
+            ],
+            "continueOnFail": true,
+            "credentials": {
+                "httpHeaderAuth": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "OpenRouter"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "jsCode": "// Process AI response\nconst video = $('Loop Analysis').item.json;\nconst response = $input.item.json;\n\nif (response.error || !response.choices?.[0]?.message?.content) {\n  return {\n    id: video.id,\n    analysis_status: 'failed',\n    analysis_error: response.error?.message || 'AI analysis failed',\n    analysis_attempts: video.analysis_attempts + 1\n  };\n} else {\n  return {\n    id: video.id,\n    analysis_text: response.choices[0].message.content,\n    analysis_model: 'google/gemini-flash-1.5',\n    analysis_status: 'success',\n    analysis_error: null,\n    analysis_attempts: video.analysis_attempts + 1,\n    analysis_generated_at: new Date().toISOString()\n  };\n}"
+            },
+            "id": "process-analysis",
+            "name": "Process Analysis Result",
+            "type": "n8n-nodes-base.code",
+            "typeVersion": 2,
+            "position": [
+                4000,
+                0
+            ]
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "schema": "public",
+                "table": "videos",
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "id",
+                            "value": "={{ $json.id }}"
+                        }
+                    ]
+                },
+                "columns": "analysis_text,analysis_model,analysis_status,analysis_error,analysis_attempts,analysis_generated_at"
+            },
+            "id": "update-analysis",
+            "name": "Update Analysis Status",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                4200,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "operation": "update",
+                "schema": "public",
+                "table": "sync_runs",
+                "filters": {
+                    "conditions": [
+                        {
+                            "column": "id",
+                            "value": "={{ $('Create Sync Run').item.json.id }}"
+                        }
+                    ]
+                },
+                "columns": "finished_at,status",
+                "values": "={{ new Date().toISOString() }},completed"
+            },
+            "id": "finalize-sync-run",
+            "name": "Finalize Sync Run",
+            "type": "n8n-nodes-base.supabase",
+            "typeVersion": 1,
+            "position": [
+                4400,
+                0
+            ],
+            "credentials": {
+                "supabaseApi": {
+                    "id": "YOUR_CREDENTIAL_ID",
+                    "name": "Supabase"
+                }
+            }
+        },
+        {
+            "parameters": {
+                "values": {
+                    "number": [
+                        {
+                            "name": "minDurationMinutes",
+                            "value": 30
+                        }
+                    ]
+                }
+            },
+            "id": "config",
+            "name": "Workflow Configuration",
+            "type": "n8n-nodes-base.set",
+            "typeVersion": 3,
+            "position": [
+                -200,
+                0
+            ]
+        }
+    ],
+    "connections": {
+        "Schedule (Every 6 Hours)": {
+            "main": [
+                [
+                    {
+                        "node": "Workflow Configuration",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Workflow Configuration": {
+            "main": [
+                [
+                    {
+                        "node": "Create Sync Run",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Create Sync Run": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Approved Channels",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Approved Channels": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Channels",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Channels": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Pending Transcripts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Prepare Search Params",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Prepare Search Params": {
+            "main": [
+                [
+                    {
+                        "node": "YouTube Search",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "YouTube Search": {
+            "main": [
+                [
+                    {
+                        "node": "Collect Video IDs",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Collect Video IDs": {
+            "main": [
+                [
+                    {
+                        "node": "Has Videos?",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Has Videos?": {
+            "main": [
+                [
+                    {
+                        "node": "Batch Video Details",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Update Channel Watermark",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Batch Video Details": {
+            "main": [
+                [
+                    {
+                        "node": "Parse & Filter Videos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Parse & Filter Videos": {
+            "main": [
+                [
+                    {
+                        "node": "Upsert Videos",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Upsert Videos": {
+            "main": [
+                [
+                    {
+                        "node": "Update Channel Watermark",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update Channel Watermark": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Channels",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Pending Transcripts": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Transcripts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Transcripts": {
+            "main": [
+                [
+                    {
+                        "node": "Fetch Pending Analysis (Selected Only)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Fetch Transcript",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Transcript": {
+            "main": [
+                [
+                    {
+                        "node": "Process Transcript Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Transcript Result": {
+            "main": [
+                [
+                    {
+                        "node": "Update Transcript Status",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update Transcript Status": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Transcripts",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Fetch Pending Analysis (Selected Only)": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Analysis",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Loop Analysis": {
+            "main": [
+                [
+                    {
+                        "node": "Finalize Sync Run",
+                        "type": "main",
+                        "index": 0
+                    }
+                ],
+                [
+                    {
+                        "node": "Run AI Analysis (OpenRouter)",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Run AI Analysis (OpenRouter)": {
+            "main": [
+                [
+                    {
+                        "node": "Process Analysis Result",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Process Analysis Result": {
+            "main": [
+                [
+                    {
+                        "node": "Update Analysis Status",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        },
+        "Update Analysis Status": {
+            "main": [
+                [
+                    {
+                        "node": "Loop Analysis",
+                        "type": "main",
+                        "index": 0
+                    }
+                ]
+            ]
+        }
+    },
+    "settings": {
+        "executionOrder": "v1"
+    }
+}
