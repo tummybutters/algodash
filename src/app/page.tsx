@@ -1,7 +1,8 @@
 import { getVideosForTriage, getApprovedChannels } from '@/lib/supabase/queries';
 import { VideoFeed } from '@/components/video-feed';
 import Link from 'next/link';
-import { Settings } from 'lucide-react';
+import { Settings, Upload } from 'lucide-react';
+import { AuthButton } from '@/components/auth-button';
 
 export default async function Home() {
     const [videosResult, channelsResult] = await Promise.all([
@@ -16,26 +17,36 @@ export default async function Home() {
     return (
         <div className="min-h-screen">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-sm border-b border-border">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-                    <h1 className="text-xl font-bold text-card-foreground">
+            <header className="sticky top-0 z-50 glass-header border-b border-border">
+                <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <h1 className="font-display text-2xl text-card-foreground">
                         YouTube Newsletter Dashboard
                     </h1>
-                    <Link
-                        href="/channels"
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-muted text-muted-foreground hover:text-card-foreground rounded-lg transition-colors"
-                    >
-                        <Settings size={18} />
-                        Manage Channels
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <Link
+                            href="/import"
+                            className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
+                        >
+                            <Upload size={18} />
+                            Bulk Import
+                        </Link>
+                        <Link
+                            href="/channels"
+                            className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
+                        >
+                            <Settings size={18} />
+                            Manage Channels
+                        </Link>
+                        <AuthButton />
+                    </div>
                 </div>
             </header>
 
             {/* Main content */}
             <main className="max-w-6xl mx-auto px-4 py-6">
                 {videos.length === 0 && channels.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-center">
-                        <h2 className="text-2xl font-semibold text-card-foreground mb-2">
+                    <div className="neo-panel flex flex-col items-center justify-center py-16 px-10 text-center">
+                        <h2 className="font-display text-3xl text-card-foreground mb-2">
                             No videos yet
                         </h2>
                         <p className="text-muted-foreground mb-6 max-w-md">
@@ -43,7 +54,7 @@ export default async function Home() {
                         </p>
                         <Link
                             href="/channels"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                            className="neo-button inline-flex items-center gap-2 px-6 py-3"
                         >
                             <Settings size={18} />
                             Add Channels

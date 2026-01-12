@@ -1,5 +1,19 @@
 import type { Metadata } from 'next';
+import { Space_Grotesk, DM_Serif_Display } from 'next/font/google';
+import { AuthProvider } from '@/components/session-provider';
 import './globals.css';
+
+const spaceGrotesk = Space_Grotesk({
+    subsets: ['latin'],
+    variable: '--font-sans',
+    weight: ['400', '500', '600', '700'],
+});
+
+const dmSerif = DM_Serif_Display({
+    subsets: ['latin'],
+    variable: '--font-display',
+    weight: ['400'],
+});
 
 export const metadata: Metadata = {
     title: 'YouTube Newsletter Dashboard',
@@ -13,7 +27,9 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className="antialiased">{children}</body>
+            <body className={`${spaceGrotesk.variable} ${dmSerif.variable} antialiased`}>
+                <AuthProvider>{children}</AuthProvider>
+            </body>
         </html>
     );
 }

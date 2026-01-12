@@ -5,7 +5,8 @@ import { VideoCard } from './video-card';
 import { Filters, FilterState } from './filters';
 import { createClient } from '@/lib/supabase/client';
 import type { VideoListItem, Channel, Video } from '@/types/database';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
+import { ManualVideoForm } from './manual-video-form';
 
 interface VideoFeedProps {
     initialVideos: VideoListItem[];
@@ -30,6 +31,7 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
     const [videos, setVideos] = useState<VideoListItem[]>(initialVideos);
     const [totalCount, setTotalCount] = useState(initialCount);
     const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+    const [activeTab, setActiveTab] = useState<'all' | 'hand'>('all');
     const [isLoading, setIsLoading] = useState(false);
     const [offset, setOffset] = useState(PAGE_SIZE);
     const loaderRef = useRef<HTMLDivElement>(null);
@@ -90,9 +92,26 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
 
     const handleFilterChange = useCallback((newFilters: FilterState) => {
         setFilters(newFilters);
+        setActiveTab(newFilters.newsletterOnly ? 'hand' : 'all');
         setOffset(PAGE_SIZE);
         fetchVideos(newFilters, 0, false);
     }, [fetchVideos]);
+
+    const handleTabChange = useCallback((tab: 'all' | 'hand') => {
+        const nextFilters = { ...filters, newsletterOnly: tab === 'hand' };
+        setActiveTab(tab);
+        setFilters(nextFilters);
+        setOffset(PAGE_SIZE);
+        fetchVideos(nextFilters, 0, false);
+    }, [filters, fetchVideos]);
+
+    const handleManualAdded = useCallback(() => {
+        const nextFilters = { ...filters, newsletterOnly: true };
+        setActiveTab('hand');
+        setFilters(nextFilters);
+        setOffset(PAGE_SIZE);
+        fetchVideos(nextFilters, 0, false);
+    }, [filters, fetchVideos]);
 
     const loadMore = useCallback(() => {
         if (isLoading || videos.length >= totalCount) return;
@@ -129,27 +148,55 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
     };
 
     return (
-        <div className="space-y-6">
-            <Filters
-                channels={channels}
-                onFilterChange={handleFilterChange}
-                initialFilters={DEFAULT_FILTERS}
-            />
-
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>
+        <div className="space-y-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                    <button
+                        onClick={() => handleTabChange('all')}
+                        className={`neo-chip ${activeTab === 'all'
+                                ? 'bg-primary text-white border-transparent'
+                                : 'bg-muted text-muted-foreground'}`}
+                    >
+                        All videos
+                    </button>
+                    <button
+                        onClick={() => handleTabChange('hand')}
+                        className={`neo-chip inline-flex items-center gap-2 ${activeTab === 'hand'
+                                ? 'bg-primary text-white border-transparent'
+                                : 'bg-muted text-muted-foreground'}`}
+                    >
+                        <Sparkles size={12} />
+                        Hand selected
+                    </button>
+                </div>
+                <span className="neo-chip bg-muted text-muted-foreground">
                     Showing {videos.length} of {totalCount} videos
                 </span>
             </div>
 
-            <div className="space-y-4">
-                {videos.map((video) => (
-                    <VideoCard key={video.id} video={video} onExpand={handleExpand} />
+            <Filters
+                channels={channels}
+                onFilterChange={handleFilterChange}
+                filters={filters}
+            />
+
+            {activeTab === 'hand' && (
+                <ManualVideoForm channels={channels} onAdded={handleManualAdded} />
+            )}
+
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {videos.map((video, index) => (
+                    <VideoCard
+                        key={video.id}
+                        video={video}
+                        onExpand={handleExpand}
+                        index={index}
+                    />
                 ))}
             </div>
 
             {/* Infinite scroll loader */}
-            <div ref={loaderRef} className="flex items-center justify-center py-8">
+            <div ref={loaderRef} className="flex items-center justify-center py-10">
                 {isLoading && (
                     <Loader2 className="animate-spin text-primary" size={32} />
                 )}

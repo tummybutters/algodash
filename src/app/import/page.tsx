@@ -1,15 +1,14 @@
-import { getChannels } from '@/lib/supabase/queries';
-import { ChannelManager } from '@/components/channel-manager';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { getChannels } from '@/lib/supabase/queries';
+import { BulkVideoImport } from '@/components/bulk-video-import';
 import { AuthButton } from '@/components/auth-button';
 
-export default async function ChannelsPage() {
+export default async function ImportPage() {
     const { data: channels } = await getChannels();
 
     return (
         <div className="min-h-screen">
-            {/* Header */}
             <header className="sticky top-0 z-50 glass-header border-b border-border">
                 <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center gap-3">
@@ -21,16 +20,15 @@ export default async function ChannelsPage() {
                             Back
                         </Link>
                         <h1 className="font-display text-2xl text-card-foreground">
-                            Manage Channels
+                            Bulk Import
                         </h1>
                     </div>
                     <AuthButton />
                 </div>
             </header>
 
-            {/* Main content */}
             <main className="max-w-6xl mx-auto px-4 py-6">
-                <ChannelManager channels={channels || []} />
+                <BulkVideoImport channels={channels || []} />
             </main>
         </div>
     );

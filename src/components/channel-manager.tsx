@@ -46,7 +46,7 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
             <div className="flex justify-end">
                 <button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    className="neo-button inline-flex items-center gap-2 px-4 py-2"
                 >
                     <Plus size={18} />
                     Add Channel
@@ -55,8 +55,8 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
 
             {/* Add form */}
             {showAddForm && (
-                <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-                    <h3 className="font-medium text-card-foreground">Add New Channel</h3>
+                <div className="neo-panel p-4 space-y-4">
+                    <h3 className="font-display text-lg text-card-foreground">Add New Channel</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm text-muted-foreground mb-1">
@@ -67,7 +67,7 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
                                 placeholder="UCxxxxxxxxxxxxxx"
                                 value={newChannelId}
                                 onChange={(e) => setNewChannelId(e.target.value)}
-                                className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="neo-input w-full px-3 py-2 text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                             <p className="text-xs text-muted-foreground mt-1">
                                 Find this in the channel URL or page source
@@ -82,7 +82,7 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
                                 placeholder="Channel Name"
                                 value={newChannelName}
                                 onChange={(e) => setNewChannelName(e.target.value)}
-                                className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="neo-input w-full px-3 py-2 text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                     </div>
@@ -90,14 +90,14 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
                         <button
                             onClick={handleAdd}
                             disabled={isPending || !newChannelId.trim() || !newChannelName.trim()}
-                            className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="neo-button inline-flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isPending && <Loader2 size={16} className="animate-spin" />}
                             Add
                         </button>
                         <button
                             onClick={() => setShowAddForm(false)}
-                            className="px-4 py-2 bg-muted text-muted-foreground hover:text-card-foreground rounded-lg transition-colors"
+                            className="neo-button-ghost px-4 py-2"
                         >
                             Cancel
                         </button>
@@ -106,7 +106,7 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
             )}
 
             {/* Channel list */}
-            <div className="bg-card border border-border rounded-lg overflow-hidden">
+            <div className="neo-panel overflow-hidden">
                 <table className="w-full">
                     <thead>
                         <tr className="border-b border-border">

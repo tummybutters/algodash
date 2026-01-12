@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Search, Filter, Star, Calendar } from 'lucide-react';
+import { X, Search, Filter, Calendar } from 'lucide-react';
 import type { VideoStatus, Channel } from '@/types/database';
 
 interface FiltersProps {
     channels: Channel[];
     onFilterChange: (filters: FilterState) => void;
-    initialFilters: FilterState;
+    filters: FilterState;
 }
 
 export interface FilterState {
@@ -29,13 +29,11 @@ const STATUS_OPTIONS: { value: VideoStatus; label: string; color: string }[] = [
     { value: 'archived', label: 'Archived', color: 'bg-red-500' },
 ];
 
-export function Filters({ channels, onFilterChange, initialFilters }: FiltersProps) {
-    const [filters, setFilters] = useState<FilterState>(initialFilters);
+export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const updateFilters = (updates: Partial<FilterState>) => {
         const newFilters = { ...filters, ...updates };
-        setFilters(newFilters);
         onFilterChange(newFilters);
     };
 
@@ -62,9 +60,8 @@ export function Filters({ channels, onFilterChange, initialFilters }: FiltersPro
             durationMin: 0,
             durationMax: 240,
             search: '',
-            newsletterOnly: false,
+            newsletterOnly: filters.newsletterOnly,
         };
-        setFilters(cleared);
         onFilterChange(cleared);
     };
 
@@ -75,76 +72,63 @@ export function Filters({ channels, onFilterChange, initialFilters }: FiltersPro
         filters.dateTo ||
         filters.durationMin > 0 ||
         filters.durationMax < 240 ||
-        filters.search ||
-        filters.newsletterOnly;
+        filters.search;
 
     return (
-        <div className="bg-card border border-border rounded-lg p-4 space-y-4">
-            {/* Search bar */}
-            <div className="relative">
-                <Search
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                    size={18}
-                />
-                <input
-                    type="text"
-                    placeholder="Search videos..."
-                    value={filters.search}
-                    onChange={(e) => updateFilters({ search: e.target.value })}
-                    className="w-full pl-10 pr-4 py-2 bg-muted border border-border rounded-lg text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+        <div className="neo-panel p-5 space-y-5">
+            <div className="flex flex-col lg:flex-row gap-4">
+                <div className="relative flex-1">
+                    <Search
+                        className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
+                        size={18}
+                    />
+                    <input
+                        type="text"
+                        placeholder="Search videos..."
+                        value={filters.search}
+                        onChange={(e) => updateFilters({ search: e.target.value })}
+                        className="neo-input w-full pl-11 pr-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                </div>
+
+                <div className="flex items-center gap-3 flex-wrap">
+                    <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="neo-button-ghost px-4 py-2 text-xs inline-flex items-center gap-2"
+                    >
+                        <Filter size={14} />
+                        More filters
+                    </button>
+
+                    {hasActiveFilters && (
+                        <button
+                            onClick={clearFilters}
+                            className="text-xs text-rose-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1"
+                        >
+                            <X size={12} />
+                            Clear
+                        </button>
+                    )}
+                </div>
             </div>
 
-            {/* Quick filters */}
-            <div className="flex items-center gap-2 flex-wrap">
-                <button
-                    onClick={() => updateFilters({ newsletterOnly: !filters.newsletterOnly })}
-                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${filters.newsletterOnly
-                            ? 'bg-accent text-accent-foreground'
-                            : 'bg-muted text-muted-foreground hover:text-card-foreground'
-                        }`}
-                >
-                    <Star size={14} fill={filters.newsletterOnly ? 'currentColor' : 'none'} />
-                    Newsletter only
-                </button>
-
+            <div className="flex flex-wrap gap-2">
                 {STATUS_OPTIONS.map((status) => (
                     <button
                         key={status.value}
                         onClick={() => toggleStatus(status.value)}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm transition-colors ${filters.statuses.includes(status.value)
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-muted text-muted-foreground hover:text-card-foreground'
-                            }`}
+                        className={`neo-chip ${filters.statuses.includes(status.value)
+                                ? 'bg-primary text-white border-transparent'
+                                : 'bg-muted text-muted-foreground'}`}
                     >
                         <span className={`w-2 h-2 rounded-full ${status.color}`} />
                         {status.label}
                     </button>
                 ))}
-
-                <button
-                    onClick={() => setIsExpanded(!isExpanded)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm bg-muted text-muted-foreground hover:text-card-foreground transition-colors ml-auto"
-                >
-                    <Filter size={14} />
-                    More filters
-                </button>
-
-                {hasActiveFilters && (
-                    <button
-                        onClick={clearFilters}
-                        className="inline-flex items-center gap-1 px-2 py-1 text-xs text-red-500 hover:text-red-400 transition-colors"
-                    >
-                        <X size={12} />
-                        Clear
-                    </button>
-                )}
             </div>
 
-            {/* Expanded filters */}
             {isExpanded && (
                 <div className="pt-4 border-t border-border space-y-4">
-                    {/* Channels */}
                     <div>
                         <label className="block text-sm font-medium text-card-foreground mb-2">
                             Channels
@@ -154,10 +138,9 @@ export function Filters({ channels, onFilterChange, initialFilters }: FiltersPro
                                 <button
                                     key={channel.id}
                                     onClick={() => toggleChannel(channel.id)}
-                                    className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filters.channels.includes(channel.id)
-                                            ? 'bg-primary text-primary-foreground'
-                                            : 'bg-muted text-muted-foreground hover:text-card-foreground'
-                                        }`}
+                                    className={`neo-chip ${filters.channels.includes(channel.id)
+                                            ? 'bg-primary text-white border-transparent'
+                                            : 'bg-muted text-muted-foreground'}`}
                                 >
                                     {channel.name}
                                 </button>
@@ -165,8 +148,7 @@ export function Filters({ channels, onFilterChange, initialFilters }: FiltersPro
                         </div>
                     </div>
 
-                    {/* Date range */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="block text-sm font-medium text-card-foreground mb-2">
                                 <Calendar size={14} className="inline mr-1" />
@@ -176,7 +158,7 @@ export function Filters({ channels, onFilterChange, initialFilters }: FiltersPro
                                 type="date"
                                 value={filters.dateFrom}
                                 onChange={(e) => updateFilters({ dateFrom: e.target.value })}
-                                className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="neo-input w-full px-3 py-2 text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                         <div>
@@ -188,12 +170,11 @@ export function Filters({ channels, onFilterChange, initialFilters }: FiltersPro
                                 type="date"
                                 value={filters.dateTo}
                                 onChange={(e) => updateFilters({ dateTo: e.target.value })}
-                                className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="neo-input w-full px-3 py-2 text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                             />
                         </div>
                     </div>
 
-                    {/* Duration range */}
                     <div>
                         <label className="block text-sm font-medium text-card-foreground mb-2">
                             Duration: {filters.durationMin}min - {filters.durationMax}min
