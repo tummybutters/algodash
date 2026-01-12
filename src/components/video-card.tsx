@@ -219,9 +219,9 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                             </button>
                         </div>
 
-                        <div className="grid lg:grid-cols-[200px,1fr] gap-6 px-6 py-6 overflow-y-auto max-h-[75vh]">
+                        <div className="grid lg:grid-cols-[120px,1fr] gap-4 px-8 py-6 overflow-y-auto max-h-[75vh]">
                             <div className="space-y-4">
-                                <div className="relative rounded-[24px] overflow-hidden aspect-[16/10] bg-muted">
+                                <div className="relative rounded-xl overflow-hidden aspect-[16/10] bg-muted">
                                     {video.thumbnail_url ? (
                                         <Image
                                             src={video.thumbnail_url}
