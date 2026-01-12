@@ -12,11 +12,12 @@ import {
     Loader2,
     RefreshCw,
     Sparkles,
+    Trash2,
     X,
     XCircle,
 } from 'lucide-react';
 import { formatDuration } from '@/lib/utils/duration';
-import { updateVideoStatus, toggleNewsletter, retryTranscript, retryAnalysis } from '@/lib/actions/videos';
+import { updateVideoStatus, toggleNewsletter, retryTranscript, retryAnalysis, deleteVideo } from '@/lib/actions/videos';
 import type { VideoListItem, VideoStatus, ProcessStatus } from '@/types/database';
 
 interface VideoCardProps {
@@ -148,6 +149,14 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
         });
     };
 
+    const handleDelete = () => {
+        if (confirm('Delete this video permanently?')) {
+            startTransition(() => {
+                deleteVideo(video.id);
+            });
+        }
+    };
+
     return (
         <>
             <article
@@ -196,6 +205,28 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                 <div className="flex flex-wrap gap-3">
                     <ProcessPill status={transcriptStatus} label="Transcript" />
                     <ProcessPill status={analysisStatus} label="Summary" />
+                </div>
+
+                {/* Status toggles */}
+                <div className="status-toggles" onClick={(e) => e.stopPropagation()}>
+                    {STATUS_OPTIONS.map((option) => (
+                        <button
+                            key={option.value}
+                            onClick={() => handleStatusChange(option.value)}
+                            className={`status-toggle ${status === option.value ? 'status-toggle-active' : ''}`}
+                            disabled={isPending}
+                        >
+                            {option.label}
+                        </button>
+                    ))}
+                    <button
+                        onClick={handleDelete}
+                        className="delete-btn"
+                        title="Delete video"
+                        disabled={isPending}
+                    >
+                        <Trash2 size={14} />
+                    </button>
                 </div>
             </article>
 

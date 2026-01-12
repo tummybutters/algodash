@@ -36,6 +36,21 @@ export async function toggleNewsletter(id: string, include: boolean) {
     revalidatePath('/');
 }
 
+export async function deleteVideo(id: string) {
+    const supabase = createServiceClient();
+
+    const { error } = await supabase
+        .from('videos')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        throw new Error(`Failed to delete video: ${error.message}`);
+    }
+
+    revalidatePath('/');
+}
+
 export async function retryTranscript(id: string): Promise<{ status: ProcessStatus }> {
     const supabase = createServiceClient();
 

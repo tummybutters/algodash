@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, DM_Serif_Display } from 'next/font/google';
 import './globals.css';
+import { Sidebar } from '@/components/sidebar';
 
 const spaceGrotesk = Space_Grotesk({
     subsets: ['latin'],
@@ -27,7 +28,10 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${spaceGrotesk.variable} ${dmSerif.variable} antialiased`}>
-                {children}
+                <Sidebar />
+                <div className="main-with-sidebar">
+                    {children}
+                </div>
             </body>
         </html>
     );

@@ -1,8 +1,7 @@
 import { getVideosForTriage, getApprovedChannels } from '@/lib/supabase/queries';
 import { VideoFeed } from '@/components/video-feed';
 import Link from 'next/link';
-import { Settings, Upload } from 'lucide-react';
-import { AuthButton } from '@/components/auth-button';
+import { Settings } from 'lucide-react';
 import { requireUser } from '@/lib/supabase/require-user';
 
 export default async function Home() {
@@ -19,34 +18,8 @@ export default async function Home() {
 
     return (
         <div className="min-h-screen">
-            {/* Header */}
-            <header className="sticky top-0 z-50 glass-header border-b border-border">
-                <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <h1 className="font-display text-2xl text-card-foreground">
-                        YouTube Newsletter Dashboard
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3">
-                        <Link
-                            href="/import"
-                            className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
-                        >
-                            <Upload size={18} />
-                            Bulk Import
-                        </Link>
-                        <Link
-                            href="/channels"
-                            className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
-                        >
-                            <Settings size={18} />
-                            Manage Channels
-                        </Link>
-                        <AuthButton />
-                    </div>
-                </div>
-            </header>
-
             {/* Main content */}
-            <main className="max-w-7xl mx-auto px-6 lg:px-12 py-10">
+            <main className="px-8 py-8">
                 {videos.length === 0 && channels.length === 0 ? (
                     <div className="neo-panel flex flex-col items-center justify-center py-16 px-10 text-center">
                         <h2 className="font-display text-3xl text-card-foreground mb-2">
