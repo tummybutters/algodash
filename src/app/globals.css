@@ -1,28 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf9f7;
-  --foreground: #18181b;
-  --card: #ffffff;
-  --card-foreground: #18181b;
-  --primary: #18181b;
-  --primary-hover: #27272a;
-  --primary-foreground: #fafafa;
-  --secondary: #f4f4f5;
-  --secondary-foreground: #18181b;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --border: #e4e4e7;
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --accent: #18181b;
-  --accent-foreground: #fafafa;
+  /* Dark navy theme matching sidebar */
+  --background: #0c1222;
+  --foreground: #e2e8f0;
+  --card: #111827;
+  --card-foreground: #f1f5f9;
+  --primary: #6366f1;
+  --primary-hover: #818cf8;
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --border: rgba(255, 255, 255, 0.1);
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --accent: #6366f1;
+  --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --radius: 0.75rem;
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 10px 10px -5px rgba(0, 0, 0, 0.03);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
 * {
@@ -224,11 +225,11 @@ body {
 
 .neo-button-ghost:hover {
   background: var(--muted);
-  border-color: #d4d4d8;
+  border-color: var(--border);
 }
 
 .neo-button-ghost:active {
-  background: #e4e4e7;
+  background: var(--secondary);
 }
 
 /* Premium Chip/Tag - Compact */
@@ -248,7 +249,7 @@ body {
 }
 
 .neo-chip:hover {
-  background: #e4e4e7;
+  background: var(--secondary);
   border-color: var(--border);
 }
 
@@ -274,10 +275,10 @@ body {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: #e4e4e7;
+  background-color: #374151;
   border-radius: 9999px;
   border: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
