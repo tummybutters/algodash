@@ -21,11 +21,11 @@ export default async function Home() {
         <div className="min-h-screen">
             {/* Header */}
             <header className="sticky top-0 z-50 glass-header border-b border-border">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <h1 className="font-display text-2xl text-card-foreground">
                         YouTube Newsletter Dashboard
                     </h1>
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-3">
                         <Link
                             href="/import"
                             className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
@@ -46,7 +46,7 @@ export default async function Home() {
             </header>
 
             {/* Main content */}
-            <main className="max-w-6xl mx-auto px-4 py-6">
+            <main className="max-w-7xl mx-auto px-6 lg:px-12 py-10">
                 {videos.length === 0 && channels.length === 0 ? (
                     <div className="neo-panel flex flex-col items-center justify-center py-16 px-10 text-center">
                         <h2 className="font-display text-3xl text-card-foreground mb-2">

@@ -148,22 +148,22 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-2">
+        <div className="space-y-10">
+            <div className="flex flex-wrap items-center justify-between gap-6">
+                <div className="flex flex-wrap items-center gap-3">
                     <button
                         onClick={() => handleTabChange('all')}
                         className={`neo-chip ${activeTab === 'all'
-                                ? 'bg-primary text-white border-transparent'
-                                : 'bg-muted text-muted-foreground'}`}
+                            ? 'bg-primary text-white border-transparent'
+                            : 'bg-muted text-muted-foreground'}`}
                     >
                         All videos
                     </button>
                     <button
                         onClick={() => handleTabChange('hand')}
                         className={`neo-chip inline-flex items-center gap-2 ${activeTab === 'hand'
-                                ? 'bg-primary text-white border-transparent'
-                                : 'bg-muted text-muted-foreground'}`}
+                            ? 'bg-primary text-white border-transparent'
+                            : 'bg-muted text-muted-foreground'}`}
                     >
                         <Sparkles size={12} />
                         Hand selected
@@ -184,7 +184,7 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
                 <ManualVideoForm channels={channels} onAdded={handleManualAdded} />
             )}
 
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 {videos.map((video, index) => (
                     <VideoCard
                         key={video.id}

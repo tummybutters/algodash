@@ -151,11 +151,11 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
     return (
         <>
             <article
-                className="neo-card p-4 space-y-3 group rise-in cursor-pointer"
+                className="neo-card p-6 space-y-4 group rise-in cursor-pointer"
                 style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
                 onClick={handleOpen}
             >
-                <div className="relative rounded-[22px] overflow-hidden aspect-[16/10] bg-muted">
+                <div className="relative rounded-xl overflow-hidden aspect-[16/10] bg-muted">
                     {video.thumbnail_url ? (
                         <Image
                             src={video.thumbnail_url}
@@ -174,38 +174,17 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                     </span>
                 </div>
 
-                <div className="flex items-start justify-between gap-2">
+                <div>
                     <h3 className="font-display text-lg leading-tight line-clamp-2 text-card-foreground">
                         {video.title}
                     </h3>
-                    <label
-                        className="neo-switch"
-                        title={includeInNewsletter ? 'In hand selected' : 'Add to hand selected'}
-                        onClick={(event) => event.stopPropagation()}
-                    >
-                        <input
-                            className="neo-toggle"
-                            type="checkbox"
-                            checked={includeInNewsletter}
-                            aria-label="Include in hand selected"
-                            onChange={(event) => {
-                                event.stopPropagation();
-                                const nextValue = !includeInNewsletter;
-                                setIncludeInNewsletter(nextValue);
-                                startTransition(() => {
-                                    toggleNewsletter(video.id, nextValue);
-                                });
-                            }}
-                        />
-                        <span className="neo-slider" />
-                    </label>
                 </div>
 
                 <p className="text-sm text-muted-foreground">
                     {video.channel_name || 'Unknown channel'}
                 </p>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-3">
                     <span className="neo-chip bg-muted text-muted-foreground">
                         {formatDistanceToNow(new Date(video.published_at), { addSuffix: true })}
                     </span>
@@ -214,7 +193,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                     </span>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                     <ProcessPill status={transcriptStatus} label="Transcript" />
                     <ProcessPill status={analysisStatus} label="Summary" />
                 </div>
@@ -240,7 +219,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                             </button>
                         </div>
 
-                        <div className="grid lg:grid-cols-[320px,1fr] gap-6 px-6 py-5 overflow-y-auto max-h-[75vh]">
+                        <div className="grid lg:grid-cols-[200px,1fr] gap-6 px-6 py-6 overflow-y-auto max-h-[75vh]">
                             <div className="space-y-4">
                                 <div className="relative rounded-[24px] overflow-hidden aspect-[16/10] bg-muted">
                                     {video.thumbnail_url ? (
@@ -288,7 +267,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
 
                                     <div className="flex items-center justify-between">
                                         <div>
-                                        <p className="text-xs text-muted-foreground">Hand selected</p>
+                                            <p className="text-xs text-muted-foreground">Hand selected</p>
                                             <label className="neo-switch" onClick={(event) => event.stopPropagation()}>
                                                 <input
                                                     className="neo-toggle"
@@ -317,8 +296,8 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                                     key={option.value}
                                                     onClick={() => handleStatusChange(option.value)}
                                                     className={`neo-chip ${status === option.value
-                                                            ? 'bg-primary text-white border-transparent'
-                                                            : 'bg-muted text-muted-foreground'}`}
+                                                        ? 'bg-primary text-white border-transparent'
+                                                        : 'bg-muted text-muted-foreground'}`}
                                                     disabled={isPending}
                                                 >
                                                     {option.label}
@@ -356,16 +335,16 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                     <button
                                         onClick={() => setActiveTab('transcript')}
                                         className={`neo-chip ${activeTab === 'transcript'
-                                                ? 'bg-primary text-white border-transparent'
-                                                : 'bg-muted text-muted-foreground'}`}
+                                            ? 'bg-primary text-white border-transparent'
+                                            : 'bg-muted text-muted-foreground'}`}
                                     >
                                         Transcript
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('summary')}
                                         className={`neo-chip ${activeTab === 'summary'
-                                                ? 'bg-primary text-white border-transparent'
-                                                : 'bg-muted text-muted-foreground'}`}
+                                            ? 'bg-primary text-white border-transparent'
+                                            : 'bg-muted text-muted-foreground'}`}
                                     >
                                         Summary
                                     </button>

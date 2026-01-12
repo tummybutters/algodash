@@ -75,9 +75,9 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
         filters.search;
 
     return (
-        <div className="neo-panel p-5 space-y-5">
-            <div className="flex flex-col lg:flex-row gap-4">
-                <div className="relative flex-1">
+        <div className="neo-panel p-6 space-y-6">
+            <div className="flex flex-col gap-4">
+                <div className="relative w-full">
                     <Search
                         className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
                         size={18}
@@ -91,7 +91,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                     />
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-4 flex-wrap">
                     <button
                         onClick={() => setIsExpanded(!isExpanded)}
                         className="neo-button-ghost px-4 py-2 text-xs inline-flex items-center gap-2"
@@ -112,14 +112,14 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                 </div>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
                 {STATUS_OPTIONS.map((status) => (
                     <button
                         key={status.value}
                         onClick={() => toggleStatus(status.value)}
                         className={`neo-chip ${filters.statuses.includes(status.value)
-                                ? 'bg-primary text-white border-transparent'
-                                : 'bg-muted text-muted-foreground'}`}
+                            ? 'bg-primary text-white border-transparent'
+                            : 'bg-muted text-muted-foreground'}`}
                     >
                         <span className={`w-2 h-2 rounded-full ${status.color}`} />
                         {status.label}
@@ -128,19 +128,19 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
             </div>
 
             {isExpanded && (
-                <div className="pt-4 border-t border-border space-y-4">
+                <div className="pt-5 border-t border-border space-y-5">
                     <div>
                         <label className="block text-sm font-medium text-card-foreground mb-2">
                             Channels
                         </label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-3">
                             {channels.map((channel) => (
                                 <button
                                     key={channel.id}
                                     onClick={() => toggleChannel(channel.id)}
                                     className={`neo-chip ${filters.channels.includes(channel.id)
-                                            ? 'bg-primary text-white border-transparent'
-                                            : 'bg-muted text-muted-foreground'}`}
+                                        ? 'bg-primary text-white border-transparent'
+                                        : 'bg-muted text-muted-foreground'}`}
                                 >
                                     {channel.name}
                                 </button>
@@ -148,7 +148,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="block text-sm font-medium text-card-foreground mb-2">
                                 <Calendar size={14} className="inline mr-1" />
