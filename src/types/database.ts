@@ -1,5 +1,7 @@
-export type VideoStatus = 'new' | 'reviewed' | 'selected' | 'skipped' | 'archived';
+export type VideoStatus = 'new' | 'favorited' | 'archived';
 export type ProcessStatus = 'pending' | 'success' | 'failed' | 'unavailable';
+export type NewsletterType = 'urgent' | 'evergreen';
+export type IssueStatus = 'draft' | 'scheduled' | 'published' | 'archived';
 
 export interface Channel {
     id: string;
@@ -38,7 +40,6 @@ export interface Video {
     analysis_attempts: number;
     analysis_generated_at: string | null;
     status: VideoStatus;
-    include_in_newsletter: boolean;
     notes: string | null;
     created_at: string;
     updated_at: string;
@@ -56,7 +57,6 @@ export interface VideoListItem {
     thumbnail_url: string | null;
     video_url: string;
     status: VideoStatus;
-    include_in_newsletter: boolean;
     transcript_status: ProcessStatus;
     analysis_status: ProcessStatus;
     created_at: string;
@@ -85,7 +85,48 @@ export interface VideoFilters {
     durationMin?: number;
     durationMax?: number;
     search?: string;
-    newsletterOnly?: boolean;
     offset: number;
     limit: number;
+}
+
+export interface NewsletterIssue {
+    id: string;
+    type: NewsletterType;
+    issue_date: string;
+    status: IssueStatus;
+    title: string | null;
+    created_at: string;
+    updated_at: string;
+}
+
+export type NewsletterItemFields = {
+    podcast_name?: string | null;
+    guest_name?: string | null;
+    actor?: string | null;
+    topics?: string | null;
+    signals?: string[] | null;
+    nuggets?: string[] | null;
+    framework?: string | null;
+    why_now?: string | null;
+    why_compounds?: string | null;
+    listen_if?: string | null;
+    skip_if?: string | null;
+    relevance_horizon?: string | null;
+};
+
+export interface NewsletterItem {
+    id: string;
+    issue_id: string;
+    video_id: string;
+    position: number;
+    fields: NewsletterItemFields;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface NewsletterItemWithVideo extends NewsletterItem {
+    video: Pick<
+        VideoListItem,
+        'id' | 'title' | 'channel_name' | 'video_url' | 'thumbnail_url' | 'duration_seconds' | 'published_at'
+    >;
 }

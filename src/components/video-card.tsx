@@ -17,7 +17,7 @@ import {
     XCircle,
 } from 'lucide-react';
 import { formatDuration } from '@/lib/utils/duration';
-import { updateVideoStatus, toggleNewsletter, retryTranscript, retryAnalysis, deleteVideo } from '@/lib/actions/videos';
+import { updateVideoStatus, retryTranscript, retryAnalysis, deleteVideo } from '@/lib/actions/videos';
 import type { VideoListItem, VideoStatus, ProcessStatus } from '@/types/database';
 
 interface VideoCardProps {
@@ -33,17 +33,13 @@ interface VideoCardProps {
 
 const STATUS_OPTIONS: { value: VideoStatus; label: string }[] = [
     { value: 'new', label: 'New' },
-    { value: 'reviewed', label: 'Reviewed' },
-    { value: 'selected', label: 'Selected' },
-    { value: 'skipped', label: 'Skipped' },
+    { value: 'favorited', label: 'Favorited' },
     { value: 'archived', label: 'Archived' },
 ];
 
 const VIDEO_STATUS_STYLES: Record<VideoStatus, string> = {
     new: 'bg-blue-100 text-blue-700',
-    reviewed: 'bg-amber-100 text-amber-700',
-    selected: 'bg-emerald-100 text-emerald-700',
-    skipped: 'bg-stone-200 text-stone-600',
+    favorited: 'bg-amber-100 text-amber-700',
     archived: 'bg-rose-100 text-rose-700',
 };
 
@@ -77,13 +73,11 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [activeTab, setActiveTab] = useState<'transcript' | 'summary'>('transcript');
     const [isPending, startTransition] = useTransition();
-    const [includeInNewsletter, setIncludeInNewsletter] = useState(video.include_in_newsletter);
     const [status, setStatus] = useState<VideoStatus>(video.status);
     const [transcriptStatus, setTranscriptStatus] = useState<ProcessStatus>(video.transcript_status);
     const [analysisStatus, setAnalysisStatus] = useState<ProcessStatus>(video.analysis_status);
 
     useEffect(() => {
-        setIncludeInNewsletter(video.include_in_newsletter);
         setStatus(video.status);
         setTranscriptStatus(video.transcript_status);
         setAnalysisStatus(video.analysis_status);
@@ -301,23 +295,10 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
 
                                     <div className="flex items-center justify-between">
                                         <div>
-                                            <p className="text-xs text-muted-foreground">Hand selected</p>
-                                            <label className="neo-switch" onClick={(event) => event.stopPropagation()}>
-                                                <input
-                                                    className="neo-toggle"
-                                                    type="checkbox"
-                                                    checked={includeInNewsletter}
-                                                    aria-label="Include in hand selected"
-                                                    onChange={() => {
-                                                        const nextValue = !includeInNewsletter;
-                                                        setIncludeInNewsletter(nextValue);
-                                                        startTransition(() => {
-                                                            toggleNewsletter(video.id, nextValue);
-                                                        });
-                                                    }}
-                                                />
-                                                <span className="neo-slider" />
-                                            </label>
+                                            <p className="text-xs text-muted-foreground">Status</p>
+                                            <span className={`inline-flex items-center gap-2 text-xs font-medium ${VIDEO_STATUS_STYLES[status]} px-2 py-0.5 rounded-full`}>
+                                                {status}
+                                            </span>
                                         </div>
                                         <div className="text-xs text-muted-foreground">Duration {formatDuration(video.duration_seconds)}</div>
                                     </div>

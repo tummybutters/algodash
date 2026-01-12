@@ -1,13 +1,15 @@
 'use client';
 
 import { useMemo, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { AlertCircle, Link2, Plus } from 'lucide-react';
-import type { Channel } from '@/types/database';
+import type { Channel, VideoStatus } from '@/types/database';
 import { addManualVideo } from '@/lib/actions/videos';
 
 type ManualVideoFormProps = {
     channels: Channel[];
     onAdded: () => void;
+    defaultStatus?: VideoStatus;
 };
 
 function todayDateString() {
@@ -15,7 +17,8 @@ function todayDateString() {
     return now.toISOString().slice(0, 10);
 }
 
-export function ManualVideoForm({ channels, onAdded }: ManualVideoFormProps) {
+export function ManualVideoForm({ channels, onAdded, defaultStatus = 'favorited' }: ManualVideoFormProps) {
+    const router = useRouter();
     const [videoUrl, setVideoUrl] = useState('');
     const [channelId, setChannelId] = useState('');
     const [publishedAt, setPublishedAt] = useState(todayDateString);
@@ -39,12 +42,13 @@ export function ManualVideoForm({ channels, onAdded }: ManualVideoFormProps) {
                     channel_id: channelId,
                     published_at: publishedAt,
                     title: title || undefined,
-                    include_in_newsletter: true,
+                    status: defaultStatus,
                 });
                 setVideoUrl('');
                 setTitle('');
                 setPublishedAt(todayDateString());
                 onAdded();
+                router.refresh();
             } catch (err) {
                 const message = err instanceof Error ? err.message : 'Failed to add video.';
                 setError(message);
@@ -55,10 +59,10 @@ export function ManualVideoForm({ channels, onAdded }: ManualVideoFormProps) {
     return (
         <div className="neo-panel p-5 space-y-4">
             <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Hand selected</p>
-                <h2 className="font-display text-2xl text-card-foreground">Add a video by URL</h2>
+                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Manual add</p>
+                <h2 className="font-display text-2xl text-card-foreground">Add a podcast episode by URL</h2>
                 <p className="text-sm text-muted-foreground">
-                    Paste a YouTube URL, pick the channel, and it will land in this hand selected list.
+                    Paste a YouTube URL, pick the channel, and it will land in your favorites library.
                 </p>
             </div>
 
@@ -105,7 +109,7 @@ export function ManualVideoForm({ channels, onAdded }: ManualVideoFormProps) {
                     className="neo-button inline-flex items-center gap-2 px-5 py-3 text-sm disabled:opacity-50"
                 >
                     <Plus size={16} />
-                    Add to hand selected
+                    Add to favorites
                 </button>
             </div>
 

@@ -34,9 +34,6 @@ export async function getVideosForTriage(filters: VideoFilters): Promise<{
     if (filters.durationMax) {
         query = query.lte('duration_seconds', filters.durationMax * 60);
     }
-    if (filters.newsletterOnly) {
-        query = query.eq('include_in_newsletter', true);
-    }
     if (filters.search) {
         query = query.textSearch('search_tsv', filters.search, { type: 'websearch' });
     }

@@ -8,7 +8,7 @@ export default async function Home() {
     await requireUser();
 
     const [videosResult, channelsResult] = await Promise.all([
-        getVideosForTriage({ offset: 0, limit: 20 }),
+        getVideosForTriage({ offset: 0, limit: 20, statuses: ['new'] }),
         getApprovedChannels(),
     ]);
 
@@ -41,6 +41,9 @@ export default async function Home() {
                         initialVideos={videos}
                         initialCount={count}
                         channels={channels}
+                        title="Inbox"
+                        subtitle="Triage new episodes and decide what moves into your favorites or archive."
+                        defaultFilters={{ statuses: ['new'] }}
                     />
                 )}
             </main>

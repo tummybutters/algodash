@@ -2,13 +2,15 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Upload, Settings, LogOut } from 'lucide-react';
+import { Inbox, Star, LayoutList, Upload, Settings, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
 const NAV_ITEMS = [
-    { href: '/', label: 'Dashboard', icon: Home },
+    { href: '/', label: 'Inbox', icon: Inbox },
+    { href: '/library', label: 'Favorites', icon: Star },
+    { href: '/builder', label: 'Newsletter Builder', icon: LayoutList },
     { href: '/import', label: 'Bulk Import', icon: Upload },
-    { href: '/channels', label: 'Channels', icon: Settings },
+    { href: '/channels', label: 'Sources', icon: Settings },
 ];
 
 export function Sidebar() {
@@ -23,8 +25,8 @@ export function Sidebar() {
     return (
         <aside className="sidebar">
             <div className="sidebar-header">
-                <span className="sidebar-logo">📺</span>
-                <span className="sidebar-title">Newsletter</span>
+                <span className="sidebar-logo">EA</span>
+                <span className="sidebar-title">Executive Algorithm</span>
             </div>
 
             <nav className="sidebar-nav">

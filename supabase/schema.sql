@@ -4,8 +4,10 @@
 -- ============================================
 -- ENUMS
 -- ============================================
-CREATE TYPE video_status AS ENUM ('new', 'reviewed', 'selected', 'skipped', 'archived');
+CREATE TYPE video_status AS ENUM ('new', 'favorited', 'archived');
 CREATE TYPE process_status AS ENUM ('pending', 'success', 'failed', 'unavailable');
+CREATE TYPE newsletter_type AS ENUM ('urgent', 'evergreen');
+CREATE TYPE issue_status AS ENUM ('draft', 'scheduled', 'published', 'archived');
 
 -- ============================================
 -- CHANNELS TABLE
@@ -49,7 +51,7 @@ CREATE TABLE videos (
   transcript_attempts INT NOT NULL DEFAULT 0,
   transcript_fetched_at TIMESTAMPTZ,
 
-  -- AI Analysis (deferred until selected)
+  -- AI Analysis (deferred until favorited)
   analysis_text TEXT,
   analysis_json JSONB,
   analysis_model TEXT,
@@ -60,7 +62,6 @@ CREATE TABLE videos (
 
   -- Workflow state
   status video_status NOT NULL DEFAULT 'new',
-  include_in_newsletter BOOLEAN NOT NULL DEFAULT FALSE,
   notes TEXT,
 
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -91,15 +92,14 @@ CREATE TABLE sync_runs (
 CREATE INDEX idx_videos_published ON videos (published_at DESC);
 CREATE INDEX idx_videos_channel_published ON videos (channel_id, published_at DESC);
 CREATE INDEX idx_videos_status ON videos (status);
-CREATE INDEX idx_videos_newsletter ON videos (include_in_newsletter) WHERE include_in_newsletter = TRUE;
 
 -- Retry queue indexes (partial for efficiency)
 CREATE INDEX idx_videos_transcript_pending ON videos (transcript_status)
   WHERE transcript_status = 'pending' AND transcript_attempts < 3;
 CREATE INDEX idx_videos_analysis_pending ON videos (analysis_status)
-  WHERE analysis_status = 'pending' 
-    AND transcript_status = 'success' 
-    AND status = 'selected'
+  WHERE analysis_status = 'pending'
+    AND transcript_status = 'success'
+    AND status = 'favorited'
     AND analysis_attempts < 3;
 
 -- Full-text search
@@ -153,7 +153,6 @@ SELECT
   v.thumbnail_url,
   v.video_url,
   v.status,
-  v.include_in_newsletter,
   v.transcript_status,
   v.analysis_status,
   v.created_at,
@@ -161,9 +160,57 @@ SELECT
 FROM videos v
 ORDER BY v.published_at DESC;
 
--- Newsletter draft view
-CREATE VIEW newsletter_draft AS
-SELECT * FROM videos_list WHERE include_in_newsletter = TRUE;
+-- ============================================
+-- NEWSLETTER ISSUES + ITEMS
+-- ============================================
+CREATE TABLE newsletter_issues (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  type newsletter_type NOT NULL,
+  issue_date DATE NOT NULL,
+  status issue_status NOT NULL DEFAULT 'draft',
+  title TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE newsletter_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  issue_id UUID NOT NULL REFERENCES newsletter_issues(id) ON DELETE CASCADE,
+  video_id UUID NOT NULL REFERENCES videos(id) ON DELETE CASCADE,
+  position INT NOT NULL DEFAULT 0,
+  fields JSONB NOT NULL DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(issue_id, video_id)
+);
+
+CREATE INDEX idx_newsletter_items_issue_position ON newsletter_items (issue_id, position);
+
+CREATE TRIGGER trg_newsletter_issues_updated_at
+  BEFORE UPDATE ON newsletter_issues FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+CREATE TRIGGER trg_newsletter_items_updated_at
+  BEFORE UPDATE ON newsletter_items FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE VIEW newsletter_items_view AS
+SELECT
+  ni.id,
+  ni.issue_id,
+  ni.video_id,
+  ni.position,
+  ni.fields,
+  ni.created_at,
+  ni.updated_at,
+  i.type AS issue_type,
+  i.issue_date,
+  v.title,
+  v.channel_name,
+  v.thumbnail_url,
+  v.video_url,
+  v.duration_seconds,
+  v.published_at
+FROM newsletter_items ni
+JOIN newsletter_issues i ON i.id = ni.issue_id
+JOIN videos v ON v.id = ni.video_id;
 
 -- ============================================
 -- ROW LEVEL SECURITY (Optional - Enable for Auth)

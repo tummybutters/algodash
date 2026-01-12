@@ -6,6 +6,12 @@ import type { VideoStatus, ProcessStatus } from '@/types/database';
 
 const TRANSCRIPT_API_URL = 'https://transcriptapi.com/api/v2/youtube/transcript';
 
+function revalidateCoreViews() {
+    revalidatePath('/');
+    revalidatePath('/library');
+    revalidatePath('/builder');
+}
+
 export async function updateVideoStatus(id: string, status: VideoStatus) {
     const supabase = createServiceClient();
 
@@ -18,22 +24,7 @@ export async function updateVideoStatus(id: string, status: VideoStatus) {
         throw new Error(`Failed to update video status: ${error.message}`);
     }
 
-    revalidatePath('/');
-}
-
-export async function toggleNewsletter(id: string, include: boolean) {
-    const supabase = createServiceClient();
-
-    const { error } = await supabase
-        .from('videos')
-        .update({ include_in_newsletter: include })
-        .eq('id', id);
-
-    if (error) {
-        throw new Error(`Failed to toggle newsletter: ${error.message}`);
-    }
-
-    revalidatePath('/');
+    revalidateCoreViews();
 }
 
 export async function deleteVideo(id: string) {
@@ -48,7 +39,7 @@ export async function deleteVideo(id: string) {
         throw new Error(`Failed to delete video: ${error.message}`);
     }
 
-    revalidatePath('/');
+    revalidateCoreViews();
 }
 
 export async function retryTranscript(id: string): Promise<{ status: ProcessStatus }> {
@@ -85,7 +76,7 @@ export async function retryTranscript(id: string): Promise<{ status: ProcessStat
             throw new Error(`Failed to update transcript status: ${updateError.message}`);
         }
 
-        revalidatePath('/');
+        revalidateCoreViews();
         revalidatePath('/import');
         return { status: 'failed' };
     }
@@ -116,7 +107,7 @@ export async function retryTranscript(id: string): Promise<{ status: ProcessStat
             throw new Error(`Failed to update transcript status: ${updateError.message}`);
         }
 
-        revalidatePath('/');
+        revalidateCoreViews();
         revalidatePath('/import');
         return { status: 'failed' };
     }
@@ -148,7 +139,7 @@ export async function retryTranscript(id: string): Promise<{ status: ProcessStat
             throw new Error(`Failed to update transcript status: ${updateError.message}`);
         }
 
-        revalidatePath('/');
+        revalidateCoreViews();
         revalidatePath('/import');
         return { status };
     }
@@ -185,7 +176,7 @@ export async function retryTranscript(id: string): Promise<{ status: ProcessStat
             throw new Error(`Failed to update transcript status: ${updateError.message}`);
         }
 
-        revalidatePath('/');
+        revalidateCoreViews();
         revalidatePath('/import');
         return { status: 'failed' };
     }
@@ -206,7 +197,7 @@ export async function retryTranscript(id: string): Promise<{ status: ProcessStat
         throw new Error(`Failed to update transcript: ${updateError.message}`);
     }
 
-    revalidatePath('/');
+    revalidateCoreViews();
     revalidatePath('/import');
     return { status: 'success' };
 }
@@ -226,7 +217,7 @@ export async function retryAnalysis(id: string): Promise<{ status: ProcessStatus
         throw new Error(`Failed to retry analysis: ${error.message}`);
     }
 
-    revalidatePath('/');
+    revalidateCoreViews();
     revalidatePath('/import');
     return { status: 'pending' };
 }
@@ -243,7 +234,7 @@ export async function updateVideoNotes(id: string, notes: string) {
         throw new Error(`Failed to update notes: ${error.message}`);
     }
 
-    revalidatePath('/');
+    revalidateCoreViews();
 }
 
 export async function upsertVideosManual(videos: Array<{
@@ -351,9 +342,11 @@ export async function upsertVideosManual(videos: Array<{
         throw new Error(`Failed to upsert videos: ${error.message}`);
     }
 
-    revalidatePath('/');
+    revalidateCoreViews();
     revalidatePath('/import');
     revalidatePath('/channels');
+    revalidatePath('/library');
+    revalidatePath('/builder');
 
     return { count: data?.length ?? 0 };
 }
@@ -409,7 +402,7 @@ export async function addManualVideo(input: {
     channel_id: string;
     published_at: string;
     title?: string | null;
-    include_in_newsletter?: boolean;
+    status?: VideoStatus;
 }) {
     const supabase = createServiceClient();
 
@@ -456,7 +449,7 @@ export async function addManualVideo(input: {
         published_at: publishedAt,
         duration_seconds: null,
         thumbnail_url: oembedThumbnail || `https://i.ytimg.com/vi/${youtubeVideoId}/hqdefault.jpg`,
-        include_in_newsletter: input.include_in_newsletter ?? true,
+        status: input.status ?? 'favorited',
     };
 
     const { data, error } = await supabase
@@ -468,7 +461,7 @@ export async function addManualVideo(input: {
         throw new Error(`Failed to add video: ${error.message}`);
     }
 
-    revalidatePath('/');
+    revalidateCoreViews();
     revalidatePath('/import');
 
     return { id: data?.[0]?.id ?? null };

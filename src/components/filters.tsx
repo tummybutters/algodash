@@ -18,15 +18,12 @@ export interface FilterState {
     durationMin: number;
     durationMax: number;
     search: string;
-    newsletterOnly: boolean;
 }
 
 const STATUS_OPTIONS: { value: VideoStatus; label: string; color: string }[] = [
     { value: 'new', label: 'New', color: 'bg-blue-500' },
-    { value: 'reviewed', label: 'Reviewed', color: 'bg-purple-500' },
-    { value: 'selected', label: 'Selected', color: 'bg-green-500' },
-    { value: 'skipped', label: 'Skipped', color: 'bg-gray-500' },
-    { value: 'archived', label: 'Archived', color: 'bg-red-500' },
+    { value: 'favorited', label: 'Favorited', color: 'bg-amber-500' },
+    { value: 'archived', label: 'Archived', color: 'bg-stone-500' },
 ];
 
 export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
@@ -60,7 +57,6 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
             durationMin: 0,
             durationMax: 240,
             search: '',
-            newsletterOnly: filters.newsletterOnly,
         };
         onFilterChange(cleared);
     };

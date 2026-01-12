@@ -1,17 +1,19 @@
 'use client';
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { VideoCard } from './video-card';
 import { Filters, FilterState } from './filters';
 import { createClient } from '@/lib/supabase/client';
 import type { VideoListItem, Channel, Video } from '@/types/database';
-import { Loader2, Sparkles } from 'lucide-react';
-import { ManualVideoForm } from './manual-video-form';
+import { Loader2 } from 'lucide-react';
 
 interface VideoFeedProps {
     initialVideos: VideoListItem[];
     initialCount: number;
     channels: Channel[];
+    title?: string;
+    subtitle?: string;
+    defaultFilters?: Partial<FilterState>;
 }
 
 const DEFAULT_FILTERS: FilterState = {
@@ -22,16 +24,18 @@ const DEFAULT_FILTERS: FilterState = {
     durationMin: 0,
     durationMax: 240,
     search: '',
-    newsletterOnly: false,
 };
 
 const PAGE_SIZE = 20;
 
-export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedProps) {
+export function VideoFeed({ initialVideos, initialCount, channels, title, subtitle, defaultFilters }: VideoFeedProps) {
+    const resolvedFilters = useMemo(
+        () => ({ ...DEFAULT_FILTERS, ...defaultFilters }),
+        [defaultFilters]
+    );
     const [videos, setVideos] = useState<VideoListItem[]>(initialVideos);
     const [totalCount, setTotalCount] = useState(initialCount);
-    const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
-    const [activeTab, setActiveTab] = useState<'all' | 'hand'>('all');
+    const [filters, setFilters] = useState<FilterState>(resolvedFilters);
     const [isLoading, setIsLoading] = useState(false);
     const [offset, setOffset] = useState(PAGE_SIZE);
     const loaderRef = useRef<HTMLDivElement>(null);
@@ -63,9 +67,6 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
         if (currentFilters.durationMax < 240) {
             query = query.lte('duration_seconds', currentFilters.durationMax * 60);
         }
-        if (currentFilters.newsletterOnly) {
-            query = query.eq('include_in_newsletter', true);
-        }
         if (currentFilters.search) {
             query = query.textSearch('search_tsv', currentFilters.search, { type: 'websearch' });
         }
@@ -92,26 +93,9 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
 
     const handleFilterChange = useCallback((newFilters: FilterState) => {
         setFilters(newFilters);
-        setActiveTab(newFilters.newsletterOnly ? 'hand' : 'all');
         setOffset(PAGE_SIZE);
         fetchVideos(newFilters, 0, false);
     }, [fetchVideos]);
-
-    const handleTabChange = useCallback((tab: 'all' | 'hand') => {
-        const nextFilters = { ...filters, newsletterOnly: tab === 'hand' };
-        setActiveTab(tab);
-        setFilters(nextFilters);
-        setOffset(PAGE_SIZE);
-        fetchVideos(nextFilters, 0, false);
-    }, [filters, fetchVideos]);
-
-    const handleManualAdded = useCallback(() => {
-        const nextFilters = { ...filters, newsletterOnly: true };
-        setActiveTab('hand');
-        setFilters(nextFilters);
-        setOffset(PAGE_SIZE);
-        fetchVideos(nextFilters, 0, false);
-    }, [filters, fetchVideos]);
 
     const loadMore = useCallback(() => {
         if (isLoading || videos.length >= totalCount) return;
@@ -149,25 +133,10 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
 
     return (
         <div className="space-y-10">
-            <div className="flex flex-wrap items-center justify-between gap-6">
-                <div className="flex flex-wrap items-center gap-3">
-                    <button
-                        onClick={() => handleTabChange('all')}
-                        className={`neo-chip ${activeTab === 'all'
-                            ? 'bg-primary text-white border-transparent'
-                            : 'bg-muted text-muted-foreground'}`}
-                    >
-                        All videos
-                    </button>
-                    <button
-                        onClick={() => handleTabChange('hand')}
-                        className={`neo-chip inline-flex items-center gap-2 ${activeTab === 'hand'
-                            ? 'bg-primary text-white border-transparent'
-                            : 'bg-muted text-muted-foreground'}`}
-                    >
-                        <Sparkles size={12} />
-                        Hand selected
-                    </button>
+            <div className="flex flex-wrap items-start justify-between gap-6">
+                <div className="space-y-2">
+                    {title && <h1 className="font-display text-3xl text-card-foreground">{title}</h1>}
+                    {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
                 </div>
                 <span className="neo-chip bg-muted text-muted-foreground">
                     Showing {videos.length} of {totalCount} videos
@@ -179,10 +148,6 @@ export function VideoFeed({ initialVideos, initialCount, channels }: VideoFeedPr
                 onFilterChange={handleFilterChange}
                 filters={filters}
             />
-
-            {activeTab === 'hand' && (
-                <ManualVideoForm channels={channels} onAdded={handleManualAdded} />
-            )}
 
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 {videos.map((video, index) => (
