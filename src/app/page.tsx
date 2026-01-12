@@ -3,8 +3,11 @@ import { VideoFeed } from '@/components/video-feed';
 import Link from 'next/link';
 import { Settings, Upload } from 'lucide-react';
 import { AuthButton } from '@/components/auth-button';
+import { requireUser } from '@/lib/supabase/require-user';
 
 export default async function Home() {
+    await requireUser();
+
     const [videosResult, channelsResult] = await Promise.all([
         getVideosForTriage({ offset: 0, limit: 20 }),
         getApprovedChannels(),

@@ -13,6 +13,7 @@ type NormalizedVideo = {
     channel_id: string | null;
     channel_youtube_id: string | null;
     channel_name: string | null;
+    channel_notice: string | null;
     title: string | null;
     description: string | null;
     published_at: string | null;
@@ -169,10 +170,11 @@ function normalizeItem(
         (raw.id as Record<string, unknown> | undefined)?.videoId
     );
 
-    const channelCandidate = pickString(
-        raw.channel_id,
+    const rawChannelId = pickString(raw.channel_id);
+    const channelYoutubeCandidate = pickString(
         raw.channelId,
-        (raw.snippet as Record<string, unknown> | undefined)?.channelId
+        (raw.snippet as Record<string, unknown> | undefined)?.channelId,
+        rawChannelId && rawChannelId.startsWith('UC') ? rawChannelId : null
     );
 
     const channelTitle = pickString(
@@ -184,10 +186,14 @@ function normalizeItem(
 
     let resolvedChannel: Channel | null = null;
     let channelYoutubeId: string | null = null;
+    const canAutoCreate = Boolean(channelYoutubeCandidate);
 
-    if (channelCandidate) {
-        resolvedChannel = channelsById.get(channelCandidate) || channelsByYoutubeId.get(channelCandidate) || null;
-        channelYoutubeId = channelsByYoutubeId.has(channelCandidate) ? channelCandidate : null;
+    if (rawChannelId) {
+        resolvedChannel = channelsById.get(rawChannelId) || null;
+    }
+
+    if (!resolvedChannel && channelYoutubeCandidate) {
+        resolvedChannel = channelsByYoutubeId.get(channelYoutubeCandidate) || null;
     }
 
     if (!resolvedChannel && channelTitle) {
@@ -198,6 +204,8 @@ function normalizeItem(
         resolvedChannel = channelsById.get(defaultChannelId) || null;
     }
 
+    channelYoutubeId = resolvedChannel?.youtube_channel_id || channelYoutubeCandidate || null;
+    const channelDisplayName = resolvedChannel?.name || channelTitle || channelYoutubeId || rawChannelId || null;
     const title = pickString(raw.title, (raw.snippet as Record<string, unknown> | undefined)?.title);
     const description = pickString(raw.description, (raw.snippet as Record<string, unknown> | undefined)?.description);
     const publishedAt = normalizePublishedAt(raw);
@@ -210,7 +218,7 @@ function normalizeItem(
 
     const errors: string[] = [];
     if (!youtubeVideoId) errors.push('Missing video id');
-    if (!resolvedChannel) errors.push('Missing channel mapping');
+    if (!resolvedChannel && !canAutoCreate) errors.push('Missing channel mapping');
     if (!title) errors.push('Missing title');
     if (!publishedAt) errors.push('Missing published date');
 
@@ -218,8 +226,9 @@ function normalizeItem(
         index,
         youtube_video_id: youtubeVideoId,
         channel_id: resolvedChannel?.id || null,
-        channel_youtube_id: channelYoutubeId || channelCandidate || null,
-        channel_name: resolvedChannel?.name || channelTitle || null,
+        channel_youtube_id: channelYoutubeId,
+        channel_name: channelDisplayName,
+        channel_notice: !resolvedChannel && canAutoCreate ? 'Will create channel' : null,
         title,
         description,
         published_at: publishedAt,
@@ -308,7 +317,8 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
             try {
                 const payload = validItems.map((item) => ({
                     youtube_video_id: item.youtube_video_id as string,
-                    channel_id: item.channel_id as string,
+                    channel_id: item.channel_id,
+                    channel_youtube_id: item.channel_youtube_id,
                     title: item.title as string,
                     description: item.description,
                     published_at: item.published_at as string,
@@ -452,6 +462,11 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                                             </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {item.channel_name || item.channel_youtube_id || 'Unknown channel'}
+                                                {item.channel_notice && (
+                                                    <span className="ml-2 text-xs text-muted-foreground">
+                                                        {item.channel_notice}
+                                                    </span>
+                                                )}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground">

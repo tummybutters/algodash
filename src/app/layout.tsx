@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { Space_Grotesk, DM_Serif_Display } from 'next/font/google';
-import { AuthProvider } from '@/components/session-provider';
 import './globals.css';
 
 const spaceGrotesk = Space_Grotesk({
@@ -28,7 +27,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${spaceGrotesk.variable} ${dmSerif.variable} antialiased`}>
-                <AuthProvider>{children}</AuthProvider>
+                {children}
             </body>
         </html>
     );

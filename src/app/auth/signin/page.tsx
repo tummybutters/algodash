@@ -1,9 +1,23 @@
 'use client';
 
-import { signIn } from 'next-auth/react';
+import { useState } from 'react';
 import { LogIn } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 export default function SignInPage() {
+    const [isLoading, setIsLoading] = useState(false);
+    const supabase = createClient();
+
+    const handleSignIn = async () => {
+        setIsLoading(true);
+        await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center px-6">
             <div className="neo-panel p-10 max-w-lg w-full text-center space-y-4">
@@ -15,8 +29,9 @@ export default function SignInPage() {
                     Use your Google account to access the newsletter workflow.
                 </p>
                 <button
-                    onClick={() => signIn('google')}
-                    className="neo-button inline-flex items-center justify-center gap-2 px-5 py-3 text-sm w-full"
+                    onClick={handleSignIn}
+                    disabled={isLoading}
+                    className="neo-button inline-flex items-center justify-center gap-2 px-5 py-3 text-sm w-full disabled:opacity-70"
                 >
                     <LogIn size={16} />
                     Continue with Google

@@ -3,8 +3,11 @@ import { ArrowLeft } from 'lucide-react';
 import { getChannels } from '@/lib/supabase/queries';
 import { BulkVideoImport } from '@/components/bulk-video-import';
 import { AuthButton } from '@/components/auth-button';
+import { requireUser } from '@/lib/supabase/require-user';
 
 export default async function ImportPage() {
+    await requireUser();
+
     const { data: channels } = await getChannels();
 
     return (

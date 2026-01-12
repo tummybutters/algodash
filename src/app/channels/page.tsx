@@ -3,8 +3,11 @@ import { ChannelManager } from '@/components/channel-manager';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { AuthButton } from '@/components/auth-button';
+import { requireUser } from '@/lib/supabase/require-user';
 
 export default async function ChannelsPage() {
+    await requireUser();
+
     const { data: channels } = await getChannels();
 
     return (

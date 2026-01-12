@@ -233,7 +233,8 @@ export async function updateVideoNotes(id: string, notes: string) {
 
 export async function upsertVideosManual(videos: Array<{
     youtube_video_id: string;
-    channel_id: string;
+    channel_id: string | null;
+    channel_youtube_id: string | null;
     title: string;
     description: string | null;
     published_at: string;
@@ -247,9 +248,88 @@ export async function upsertVideosManual(videos: Array<{
 
     const supabase = createServiceClient();
 
+    const channelYoutubeIds = Array.from(new Set(
+        videos
+            .map((video) => video.channel_youtube_id)
+            .filter((id): id is string => Boolean(id))
+    ));
+
+    let channelsByYoutubeId = new Map<string, { id: string; name: string }>();
+
+    if (channelYoutubeIds.length > 0) {
+        const { data, error } = await supabase
+            .from('channels')
+            .select('id, youtube_channel_id, name')
+            .in('youtube_channel_id', channelYoutubeIds);
+
+        if (error) {
+            throw new Error(`Failed to load channels: ${error.message}`);
+        }
+
+        (data || []).forEach((channel) => {
+            channelsByYoutubeId.set(channel.youtube_channel_id, {
+                id: channel.id,
+                name: channel.name,
+            });
+        });
+    }
+
+    const missingChannelIds = channelYoutubeIds.filter((id) => !channelsByYoutubeId.has(id));
+    if (missingChannelIds.length > 0) {
+        const channelPayload = missingChannelIds.map((youtubeChannelId) => {
+            const fallbackName = videos.find((video) => video.channel_youtube_id === youtubeChannelId)?.channel_name;
+            return {
+                youtube_channel_id: youtubeChannelId,
+                name: fallbackName && fallbackName.trim().length > 0 ? fallbackName.trim() : youtubeChannelId,
+                approved: true,
+            };
+        });
+
+        const { error } = await supabase
+            .from('channels')
+            .upsert(channelPayload, { onConflict: 'youtube_channel_id' });
+
+        if (error) {
+            throw new Error(`Failed to create channels: ${error.message}`);
+        }
+
+        const { data, error: reloadError } = await supabase
+            .from('channels')
+            .select('id, youtube_channel_id, name')
+            .in('youtube_channel_id', channelYoutubeIds);
+
+        if (reloadError) {
+            throw new Error(`Failed to load channels: ${reloadError.message}`);
+        }
+
+        channelsByYoutubeId = new Map(
+            (data || []).map((channel) => [channel.youtube_channel_id, { id: channel.id, name: channel.name }])
+        );
+    }
+
+    const preparedVideos = videos.map((video) => {
+        const resolvedChannelId = video.channel_id
+            || (video.channel_youtube_id ? channelsByYoutubeId.get(video.channel_youtube_id)?.id : null);
+
+        if (!resolvedChannelId) {
+            throw new Error('Missing channel mapping for one or more videos.');
+        }
+
+        return {
+            youtube_video_id: video.youtube_video_id,
+            channel_id: resolvedChannelId,
+            title: video.title,
+            description: video.description,
+            published_at: video.published_at,
+            duration_seconds: video.duration_seconds,
+            thumbnail_url: video.thumbnail_url,
+            channel_name: video.channel_name,
+        };
+    });
+
     const { data, error } = await supabase
         .from('videos')
-        .upsert(videos, { onConflict: 'youtube_video_id' })
+        .upsert(preparedVideos, { onConflict: 'youtube_video_id' })
         .select('id');
 
     if (error) {
@@ -258,6 +338,7 @@ export async function upsertVideosManual(videos: Array<{
 
     revalidatePath('/');
     revalidatePath('/import');
+    revalidatePath('/channels');
 
     return { count: data?.length ?? 0 };
 }
