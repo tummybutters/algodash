@@ -73,18 +73,23 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
     return (
         <div className="neo-panel p-6 space-y-6">
             <div className="flex flex-col gap-4">
-                <div className="relative w-full">
-                    <Search
-                        className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground"
-                        size={18}
-                    />
+                <div className="neo-input-wrapper w-full">
+                    <Search className="neo-input-icon" size={18} />
                     <input
                         type="text"
                         placeholder="Search videos..."
                         value={filters.search}
                         onChange={(e) => updateFilters({ search: e.target.value })}
-                        className="neo-input w-full pl-11 pr-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="neo-input-field"
                     />
+                    <button
+                        type="button"
+                        onClick={() => updateFilters({ search: '' })}
+                        className="neo-input-clear"
+                        aria-label="Clear search"
+                    >
+                        <X size={16} />
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-4 flex-wrap">
