@@ -234,7 +234,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
             </article>
 
             {isOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                <div className="fixed inset-0 z-[200] flex items-center justify-center">
                     <div
                         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
                         onClick={() => setIsOpen(false)}
