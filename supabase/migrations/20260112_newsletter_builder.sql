@@ -5,7 +5,8 @@
 -- STEP 0: Drop dependent view
 -- ============================================
 -- We must drop this view because it depends on videos.status
-DROP VIEW IF EXISTS videos_list;
+-- CASCADE is required because 'newsletter_draft' (and potential others) depend on it
+DROP VIEW IF EXISTS videos_list CASCADE;
 
 -- ============================================
 -- STEP 1: Handle video_status Enum Re-creation
