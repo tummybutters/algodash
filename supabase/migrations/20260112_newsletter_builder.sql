@@ -1,5 +1,11 @@
--- Newsletter Builder Migration (SIMPLE FIX)
--- This version drops the default value before type conversion to avoid cast errors.
+-- Newsletter Builder Migration (DEPENDENCY FIX)
+-- This version drops the dependent view first to verify the 0A000 error.
+
+-- ============================================
+-- STEP 0: Drop dependent view
+-- ============================================
+-- We must drop this view because it depends on videos.status
+DROP VIEW IF EXISTS videos_list;
 
 -- ============================================
 -- STEP 1: Handle video_status Enum Re-creation
@@ -35,6 +41,28 @@ BEGIN
         
     END IF;
 END$$;
+
+-- ============================================
+-- STEP 1.5: Recreate dependent view
+-- ============================================
+CREATE OR REPLACE VIEW videos_list AS
+SELECT 
+  v.id,
+  v.youtube_video_id,
+  v.title,
+  v.channel_name,
+  v.channel_id,
+  v.published_at,
+  v.duration_seconds,
+  v.thumbnail_url,
+  v.video_url,
+  v.status,
+  v.transcript_status,
+  v.analysis_status,
+  v.created_at,
+  v.search_tsv
+FROM videos v
+ORDER BY v.published_at DESC;
 
 -- ============================================
 -- STEP 2: Add newsletter enums (Idempotent)
