@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { LogIn, LogOut } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -29,18 +30,10 @@ export function AuthButton() {
         };
     }, [supabase]);
 
-    const handleSignIn = async () => {
-        await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-                redirectTo: `${window.location.origin}/auth/callback`,
-            },
-        });
-    };
-
     const handleSignOut = async () => {
         await supabase.auth.signOut();
         setIsSignedIn(false);
+        window.location.href = '/auth/signin';
     };
 
     if (isLoading) {
@@ -64,12 +57,12 @@ export function AuthButton() {
     }
 
     return (
-        <button
-            onClick={handleSignIn}
+        <Link
+            href="/auth/signin"
             className="neo-button inline-flex items-center gap-2 px-4 py-2 text-sm"
         >
             <LogIn size={16} />
             Sign in
-        </button>
+        </Link>
     );
 }
