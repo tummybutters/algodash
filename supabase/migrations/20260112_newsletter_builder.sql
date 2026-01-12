@@ -1,42 +1,38 @@
--- Newsletter Builder Migration
--- Run this AFTER your base schema if you're adding newsletter features
+-- Newsletter Builder Migration (FIXED)
+-- Run this in Supabase SQL Editor
 -- 
 -- This migration:
--- 1. Adds the new video_status enum values if needed
--- 2. Creates newsletter_issues and newsletter_items tables
--- 3. Adds necessary indexes and triggers
+-- 1. Adds 'favorited' to video_status enum (if not exists)
+-- 2. Migrates old status values to new ones
+-- 3. Creates newsletter tables
 
 -- ============================================
--- STEP 1: Check/update video_status enum
+-- STEP 1: Add 'favorited' to video_status enum
 -- ============================================
--- If your existing enum is (new, reviewed, selected, skipped, archived), 
--- you need to migrate to (new, favorited, archived)
-
--- First check what values exist:
--- SELECT enumlabel FROM pg_enum WHERE enumtypid = 'video_status'::regtype;
-
--- If you have old values, migrate the data first:
-UPDATE videos SET status = 'archived' WHERE status IN ('skipped', 'archived');
-UPDATE videos SET status = 'favorited' WHERE status IN ('reviewed', 'selected');
-
--- Recreate the enum (requires dropping and recreating - use this approach):
--- NOTE: If your enum is already (new, favorited, archived), skip this section
-
--- Create new enum type
+-- Check if 'favorited' exists, if not add it
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'video_status_new') THEN
-        CREATE TYPE video_status_new AS ENUM ('new', 'favorited', 'archived');
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_enum 
+        WHERE enumtypid = 'video_status'::regtype 
+        AND enumlabel = 'favorited'
+    ) THEN
+        ALTER TYPE video_status ADD VALUE 'favorited';
     END IF;
 END$$;
 
--- Alter column to use new type (if old type exists)
--- ALTER TABLE videos ALTER COLUMN status TYPE video_status_new USING status::text::video_status_new;
--- DROP TYPE video_status;
--- ALTER TYPE video_status_new RENAME TO video_status;
+-- IMPORTANT: You must COMMIT after adding enum values before using them
+-- In Supabase SQL Editor, run up to here first, then run the rest
 
 -- ============================================
--- STEP 2: Add newsletter enums (if not exist)
+-- STEP 2: Migrate old status values (run AFTER step 1)
+-- ============================================
+-- Convert old statuses to new ones
+UPDATE videos SET status = 'archived' WHERE status IN ('skipped');
+UPDATE videos SET status = 'favorited' WHERE status IN ('reviewed', 'selected');
+
+-- ============================================
+-- STEP 3: Add newsletter enums
 -- ============================================
 DO $$
 BEGIN
@@ -49,7 +45,7 @@ BEGIN
 END$$;
 
 -- ============================================
--- STEP 3: Create newsletter_issues table
+-- STEP 4: Create newsletter_issues table
 -- ============================================
 CREATE TABLE IF NOT EXISTS newsletter_issues (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -57,12 +53,19 @@ CREATE TABLE IF NOT EXISTS newsletter_issues (
   issue_date DATE NOT NULL,
   status issue_status NOT NULL DEFAULT 'draft',
   title TEXT,
+  
+  -- Automation Metadata
+  subject TEXT,
+  preview_text TEXT,
+  scheduled_at TIMESTAMPTZ,
+  esp_campaign_id TEXT,
+  
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ============================================
--- STEP 4: Create newsletter_items table
+-- STEP 5: Create newsletter_items table
 -- ============================================
 CREATE TABLE IF NOT EXISTS newsletter_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -76,7 +79,7 @@ CREATE TABLE IF NOT EXISTS newsletter_items (
 );
 
 -- ============================================
--- STEP 5: Create indexes
+-- STEP 6: Create indexes
 -- ============================================
 CREATE INDEX IF NOT EXISTS idx_newsletter_items_issue_position 
   ON newsletter_items (issue_id, position);
@@ -84,19 +87,13 @@ CREATE INDEX IF NOT EXISTS idx_newsletter_items_issue_position
 CREATE INDEX IF NOT EXISTS idx_newsletter_issues_status_type 
   ON newsletter_issues (status, type);
 
--- Update videos index for new status workflow
-CREATE INDEX IF NOT EXISTS idx_videos_favorited 
-  ON videos (status) WHERE status = 'favorited';
-
 -- ============================================
--- STEP 6: Add triggers (if not exist)
+-- STEP 7: Add triggers
 -- ============================================
--- Ensure update_updated_at function exists
 CREATE OR REPLACE FUNCTION update_updated_at() RETURNS TRIGGER AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$ LANGUAGE plpgsql;
 
--- Add triggers
 DROP TRIGGER IF EXISTS trg_newsletter_issues_updated_at ON newsletter_issues;
 CREATE TRIGGER trg_newsletter_issues_updated_at
   BEFORE UPDATE ON newsletter_issues FOR EACH ROW EXECUTE FUNCTION update_updated_at();
@@ -106,7 +103,7 @@ CREATE TRIGGER trg_newsletter_items_updated_at
   BEFORE UPDATE ON newsletter_items FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================
--- STEP 7: Create view (if not exist)
+-- STEP 8: Create view
 -- ============================================
 CREATE OR REPLACE VIEW newsletter_items_view AS
 SELECT
@@ -130,24 +127,29 @@ JOIN newsletter_issues i ON i.id = ni.issue_id
 JOIN videos v ON v.id = ni.video_id;
 
 -- ============================================
--- STEP 8: Row Level Security (if using auth)
+-- STEP 9: Row Level Security
 -- ============================================
 ALTER TABLE newsletter_issues ENABLE ROW LEVEL SECURITY;
 ALTER TABLE newsletter_items ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated users to read
+-- Drop existing policies if any
+DROP POLICY IF EXISTS "Allow authenticated read access" ON newsletter_issues;
+DROP POLICY IF EXISTS "Allow authenticated read access" ON newsletter_items;
+DROP POLICY IF EXISTS "Allow service role full access" ON newsletter_issues;
+DROP POLICY IF EXISTS "Allow service role full access" ON newsletter_items;
+
+-- Create policies
 CREATE POLICY "Allow authenticated read access" ON newsletter_issues
   FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Allow authenticated read access" ON newsletter_items
   FOR SELECT USING (auth.role() = 'authenticated');
-
--- Allow service role full access
 CREATE POLICY "Allow service role full access" ON newsletter_issues
   FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "Allow service role full access" ON newsletter_items
   FOR ALL USING (auth.role() = 'service_role');
 
 -- ============================================
--- Done! Now test by running:
+-- Done! Test with:
+-- SELECT enumlabel FROM pg_enum WHERE enumtypid = 'video_status'::regtype;
 -- SELECT * FROM newsletter_issues LIMIT 1;
 -- ============================================

@@ -67,19 +67,19 @@ export function ManualVideoForm({ channels, onAdded, defaultStatus = 'favorited'
             </div>
 
             <div className="grid gap-3 md:grid-cols-[1.6fr,1fr,0.8fr]">
-                <div className="relative">
-                    <Link2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <div className="neo-input-wrapper w-full">
+                    <Link2 size={16} className="neo-input-icon" />
                     <input
                         value={videoUrl}
                         onChange={(event) => setVideoUrl(event.target.value)}
                         placeholder="https://www.youtube.com/watch?v=..."
-                        className="neo-input w-full pl-11 pr-4 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="neo-input-field"
                     />
                 </div>
                 <select
                     value={channelId}
                     onChange={(event) => setChannelId(event.target.value)}
-                    className="neo-input w-full px-3 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="neo-input w-full"
                 >
                     <option value="">Select channel</option>
                     {channelOptions.map((channel) => (
@@ -92,17 +92,19 @@ export function ManualVideoForm({ channels, onAdded, defaultStatus = 'favorited'
                     type="date"
                     value={publishedAt}
                     onChange={(event) => setPublishedAt(event.target.value)}
-                    className="neo-input w-full px-3 py-3 text-sm text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="neo-input w-full"
                 />
             </div>
 
             <div className="grid gap-3 md:grid-cols-[1fr,auto]">
-                <input
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    placeholder="Optional title override"
-                    className="neo-input w-full px-3 py-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                <div className="neo-input-wrapper w-full">
+                    <input
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                        placeholder="Optional title override"
+                        className="neo-input-field"
+                    />
+                </div>
                 <button
                     onClick={handleSubmit}
                     disabled={isPending || !canSubmit}

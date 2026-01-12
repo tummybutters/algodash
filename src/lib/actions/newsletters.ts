@@ -2,7 +2,8 @@
 
 import { createServiceClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import type { NewsletterItemFields } from '@/types/database';
+import type { NewsletterItemFields, NewsletterItemWithVideo, NewsletterIssue } from '@/types/database';
+import { renderNewsletterHtml } from '../newsletter-renderer';
 
 function revalidateBuilder() {
     revalidatePath('/builder');
@@ -120,17 +121,99 @@ export async function updateNewsletterItemFields(itemId: string, fields: Newslet
     revalidateBuilder();
 }
 
-export async function updateNewsletterIssueDate(issueId: string, issueDate: string) {
+export async function updateNewsletterIssue(issueId: string, updates: {
+    issue_date?: string;
+    subject?: string;
+    preview_text?: string;
+    scheduled_at?: string;
+    status?: string;
+}) {
     const supabase = createServiceClient();
 
     const { error } = await supabase
         .from('newsletter_issues')
-        .update({ issue_date: issueDate })
+        .update(updates)
         .eq('id', issueId);
 
     if (error) {
-        throw new Error(`Failed to update issue date: ${error.message}`);
+        throw new Error(`Failed to update issue: ${error.message}`);
     }
 
     revalidateBuilder();
+}
+
+export async function updateNewsletterIssueDate(issueId: string, issueDate: string) {
+    return updateNewsletterIssue(issueId, { issue_date: issueDate });
+}
+export async function publishNewsletter(issueId: string) {
+    const supabase = createServiceClient();
+
+    // 1. Fetch issue and items
+    const { data: issue, error: issueError } = await supabase
+        .from('newsletter_issues')
+        .select('*')
+        .eq('id', issueId)
+        .single();
+
+    if (issueError || !issue) {
+        throw new Error(`Failed to fetch issue: ${issueError?.message}`);
+    }
+
+    const { data: items, error: itemsError } = await supabase
+        .from('newsletter_items_view')
+        .select('*')
+        .eq('issue_id', issueId)
+        .order('position', { ascending: true });
+
+    if (itemsError) {
+        throw new Error(`Failed to fetch items: ${itemsError.message}`);
+    }
+
+    // Transform view items to the correct type for renderer
+    const itemsWithVideo = (items || []).map(item => ({
+        ...item,
+        video: {
+            id: item.video_id,
+            title: item.title,
+            channel_name: item.channel_name,
+            thumbnail_url: item.thumbnail_url,
+            video_url: item.video_url,
+            duration_seconds: item.duration_seconds,
+            published_at: item.published_at
+        }
+    })) as NewsletterItemWithVideo[];
+
+    // 2. Render HTML
+    const html = renderNewsletterHtml(issue as NewsletterIssue, itemsWithVideo);
+
+    // 3. QA Checks
+    if (!issue.subject) throw new Error("Missing subject line.");
+    if (itemsWithVideo.length === 0) throw new Error("Issue has no items.");
+
+    // 4. Send to ESP (Placeholder)
+    console.log("Publishing issue to ESP...", {
+        subject: issue.subject,
+        itemCount: itemsWithVideo.length,
+        htmlLength: html.length
+    });
+
+    // TODO: Implement actual ESP API call here
+    const espCampaignId = `fake_${Date.now()}`;
+
+    // 5. Update status
+    const { error: updateError } = await supabase
+        .from('newsletter_issues')
+        .update({
+            status: 'scheduled',
+            esp_campaign_id: espCampaignId,
+            scheduled_at: new Date().toISOString()
+        })
+        .eq('id', issueId);
+
+    if (updateError) {
+        throw new Error(`Failed to finalize issue: ${updateError.message}`);
+    }
+
+    revalidateBuilder();
+    return { success: true, espCampaignId };
 }

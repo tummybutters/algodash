@@ -355,18 +355,18 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                     value={rawInput}
                     onChange={(event) => setRawInput(event.target.value)}
                     placeholder="Paste JSON payload here..."
-                    className="neo-input w-full min-h-[220px] p-3 text-sm text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="neo-input min-h-[220px]"
                 />
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div>
-                        <label className="block text-sm text-muted-foreground mb-1">
+                        <label className="block text-sm text-muted-foreground mb-1 ml-2">
                             Default channel (used when no match)
                         </label>
                         <select
                             value={defaultChannelId}
                             onChange={(event) => setDefaultChannelId(event.target.value)}
-                            className="neo-input w-full px-3 py-2 text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="neo-input"
                         >
                             <option value="">No default</option>
                             {channels.map((channel) => (

@@ -95,6 +95,10 @@ export interface NewsletterIssue {
     issue_date: string;
     status: IssueStatus;
     title: string | null;
+    subject: string | null;
+    preview_text: string | null;
+    scheduled_at: string | null;
+    esp_campaign_id: string | null;
     created_at: string;
     updated_at: string;
 }

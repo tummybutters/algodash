@@ -16,7 +16,9 @@ import {
     moveNewsletterItem,
     removeNewsletterItem,
     reorderNewsletterItems,
+    updateNewsletterIssue,
     updateNewsletterIssueDate,
+    publishNewsletter,
 } from '@/lib/actions/newsletters';
 
 type NewsletterBuilderProps = {
@@ -220,8 +222,20 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
         urgent: issues.urgent.issue_date,
         evergreen: issues.evergreen.issue_date,
     });
+    const [issueMetadata, setIssueMetadata] = useState({
+        urgent: {
+            subject: issues.urgent.subject || '',
+            preview_text: issues.urgent.preview_text || '',
+        },
+        evergreen: {
+            subject: issues.evergreen.subject || '',
+            preview_text: issues.evergreen.preview_text || '',
+        }
+    });
     const [isPending, startTransition] = useTransition();
     const [copied, setCopied] = useState<NewsletterType | null>(null);
+    const [published, setPublished] = useState<NewsletterType | null>(null);
+    const [publishError, setPublishError] = useState<string | null>(null);
 
     const availableFavorites = useMemo(() => {
         const assigned = new Set([...urgentList, ...evergreenList].map((item) => item.video_id));
@@ -379,6 +393,29 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
         startTransition(() => updateNewsletterIssueDate(issues[type].id, value));
     };
 
+    const updateIssueMetadata = (type: NewsletterType, field: 'subject' | 'preview_text', value: string) => {
+        setIssueMetadata((prev) => ({
+            ...prev,
+            [type]: { ...prev[type], [field]: value }
+        }));
+        startTransition(() => updateNewsletterIssue(issues[type].id, { [field]: value }));
+    };
+
+    const handlePublish = async (type: NewsletterType) => {
+        setPublishError(null);
+        setPublished(null);
+
+        startTransition(async () => {
+            try {
+                await publishNewsletter(issues[type].id);
+                setPublished(type);
+                setTimeout(() => setPublished(null), 3000);
+            } catch (err) {
+                setPublishError(err instanceof Error ? err.message : 'Publishing failed');
+            }
+        });
+    };
+
     const renderItemCard = (
         item: NewsletterItemWithVideo,
         listType: NewsletterType,
@@ -509,17 +546,38 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => handleDrop(event, 'urgent', urgentList.length)}
                 >
-                    <div className="flex items-start justify-between gap-3">
-                        <div>
-                            <h2 className="font-display text-xl text-card-foreground">Urgent Signals</h2>
-                            <p className="text-xs text-muted-foreground">Time-sensitive picks for the next send.</p>
+                    <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <h2 className="font-display text-xl text-card-foreground">Urgent Signals</h2>
+                                <p className="text-xs text-muted-foreground">Time-sensitive picks for the next send.</p>
+                            </div>
+                            <input
+                                type="date"
+                                value={issueDates.urgent}
+                                onChange={(event) => updateIssueDate('urgent', event.target.value)}
+                                className="neo-input px-3 py-2 text-xs text-card-foreground w-32"
+                            />
                         </div>
-                        <input
-                            type="date"
-                            value={issueDates.urgent}
-                            onChange={(event) => updateIssueDate('urgent', event.target.value)}
-                            className="neo-input px-3 py-2 text-xs text-card-foreground"
-                        />
+
+                        <div className="space-y-3">
+                            <div className="neo-input-wrapper w-full">
+                                <input
+                                    placeholder="Subject line"
+                                    value={issueMetadata.urgent.subject}
+                                    onChange={(e) => updateIssueMetadata('urgent', 'subject', e.target.value)}
+                                    className="neo-input-field text-xs font-medium"
+                                />
+                            </div>
+                            <div className="neo-input-wrapper w-full">
+                                <input
+                                    placeholder="Preview text"
+                                    value={issueMetadata.urgent.preview_text}
+                                    onChange={(e) => updateIssueMetadata('urgent', 'preview_text', e.target.value)}
+                                    className="neo-input-field text-xs"
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div className="space-y-3 min-h-[200px]">
                         {urgentList.length === 0 && (
@@ -534,17 +592,38 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => handleDrop(event, 'evergreen', evergreenList.length)}
                 >
-                    <div className="flex items-start justify-between gap-3">
-                        <div>
-                            <h2 className="font-display text-xl text-card-foreground">Evergreen Signals</h2>
-                            <p className="text-xs text-muted-foreground">Long-horizon recommendations worth revisiting.</p>
+                    <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                            <div>
+                                <h2 className="font-display text-xl text-card-foreground">Evergreen Signals</h2>
+                                <p className="text-xs text-muted-foreground">Long-horizon recommendations worth revisiting.</p>
+                            </div>
+                            <input
+                                type="date"
+                                value={issueDates.evergreen}
+                                onChange={(event) => updateIssueDate('evergreen', event.target.value)}
+                                className="neo-input px-3 py-2 text-xs text-card-foreground w-32"
+                            />
                         </div>
-                        <input
-                            type="date"
-                            value={issueDates.evergreen}
-                            onChange={(event) => updateIssueDate('evergreen', event.target.value)}
-                            className="neo-input px-3 py-2 text-xs text-card-foreground"
-                        />
+
+                        <div className="space-y-3">
+                            <div className="neo-input-wrapper w-full">
+                                <input
+                                    placeholder="Subject line"
+                                    value={issueMetadata.evergreen.subject}
+                                    onChange={(e) => updateIssueMetadata('evergreen', 'subject', e.target.value)}
+                                    className="neo-input-field text-xs font-medium"
+                                />
+                            </div>
+                            <div className="neo-input-wrapper w-full">
+                                <input
+                                    placeholder="Preview text"
+                                    value={issueMetadata.evergreen.preview_text}
+                                    onChange={(e) => updateIssueMetadata('evergreen', 'preview_text', e.target.value)}
+                                    className="neo-input-field text-xs"
+                                />
+                            </div>
+                        </div>
                     </div>
                     <div className="space-y-3 min-h-[200px]">
                         {evergreenList.length === 0 && (
@@ -559,14 +638,26 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                 <section className="neo-panel p-6 space-y-4">
                     <div className="flex items-center justify-between gap-4">
                         <h3 className="font-display text-xl text-card-foreground">Urgent Draft Output</h3>
-                        <button
-                            onClick={() => handleCopy('urgent', urgentDraft)}
-                            className="neo-button inline-flex items-center gap-2 px-4 py-2 text-xs"
-                        >
-                            <Clipboard size={14} />
-                            {copied === 'urgent' ? 'Copied' : 'Copy'}
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handleCopy('urgent', urgentDraft)}
+                                className="neo-button-ghost inline-flex items-center gap-2 px-3 py-1.5 text-xs"
+                            >
+                                <Clipboard size={14} />
+                                {copied === 'urgent' ? 'Copied' : 'Copy'}
+                            </button>
+                            <button
+                                onClick={() => handlePublish('urgent')}
+                                disabled={isPending}
+                                className={`neo-button inline-flex items-center gap-2 px-3 py-1.5 text-xs ${published === 'urgent' ? 'bg-green-600' : ''}`}
+                            >
+                                <ArrowRight size={14} />
+                                {published === 'urgent' ? 'Published!' : 'Publish'}
+                            </button>
+                        </div>
                     </div>
+                    {publishError && <p className="text-[10px] text-rose-500">{publishError}</p>}
+
                     <pre className="neo-panel p-4 text-xs whitespace-pre-wrap max-h-[420px] overflow-y-auto">
                         {urgentDraft}
                     </pre>
@@ -575,14 +666,26 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                 <section className="neo-panel p-6 space-y-4">
                     <div className="flex items-center justify-between gap-4">
                         <h3 className="font-display text-xl text-card-foreground">Evergreen Draft Output</h3>
-                        <button
-                            onClick={() => handleCopy('evergreen', evergreenDraft)}
-                            className="neo-button inline-flex items-center gap-2 px-4 py-2 text-xs"
-                        >
-                            <Clipboard size={14} />
-                            {copied === 'evergreen' ? 'Copied' : 'Copy'}
-                        </button>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => handleCopy('evergreen', evergreenDraft)}
+                                className="neo-button-ghost inline-flex items-center gap-2 px-3 py-1.5 text-xs"
+                            >
+                                <Clipboard size={14} />
+                                {copied === 'evergreen' ? 'Copied' : 'Copy'}
+                            </button>
+                            <button
+                                onClick={() => handlePublish('evergreen')}
+                                disabled={isPending}
+                                className={`neo-button inline-flex items-center gap-2 px-3 py-1.5 text-xs ${published === 'evergreen' ? 'bg-green-600' : ''}`}
+                            >
+                                <ArrowRight size={14} />
+                                {published === 'evergreen' ? 'Published!' : 'Publish'}
+                            </button>
+                        </div>
                     </div>
+                    {publishError && <p className="text-[10px] text-rose-500">{publishError}</p>}
+
                     <pre className="neo-panel p-4 text-xs whitespace-pre-wrap max-h-[420px] overflow-y-auto">
                         {evergreenDraft}
                     </pre>

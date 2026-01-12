@@ -59,31 +59,35 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
                     <h3 className="font-display text-lg text-card-foreground">Add New Channel</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label className="block text-sm text-muted-foreground mb-1">
+                            <label className="block text-sm text-muted-foreground mb-1 ml-2">
                                 YouTube Channel ID
                             </label>
-                            <input
-                                type="text"
-                                placeholder="UCxxxxxxxxxxxxxx"
-                                value={newChannelId}
-                                onChange={(e) => setNewChannelId(e.target.value)}
-                                className="neo-input w-full px-3 py-2 text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
-                            <p className="text-xs text-muted-foreground mt-1">
+                            <div className="neo-input-wrapper w-full">
+                                <input
+                                    type="text"
+                                    placeholder="UCxxxxxxxxxxxxxx"
+                                    value={newChannelId}
+                                    onChange={(e) => setNewChannelId(e.target.value)}
+                                    className="neo-input-field"
+                                />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1 ml-2">
                                 Find this in the channel URL or page source
                             </p>
                         </div>
                         <div>
-                            <label className="block text-sm text-muted-foreground mb-1">
+                            <label className="block text-sm text-muted-foreground mb-1 ml-2">
                                 Display Name
                             </label>
-                            <input
-                                type="text"
-                                placeholder="Channel Name"
-                                value={newChannelName}
-                                onChange={(e) => setNewChannelName(e.target.value)}
-                                className="neo-input w-full px-3 py-2 text-card-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                            />
+                            <div className="neo-input-wrapper w-full">
+                                <input
+                                    type="text"
+                                    placeholder="Channel Name"
+                                    value={newChannelName}
+                                    onChange={(e) => setNewChannelName(e.target.value)}
+                                    className="neo-input-field"
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className="flex gap-2">
@@ -150,8 +154,8 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
                                     <td className="px-4 py-3 text-center">
                                         <span
                                             className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${channel.approved
-                                                    ? 'bg-green-500/20 text-green-500'
-                                                    : 'bg-red-500/20 text-red-500'
+                                                ? 'bg-green-500/20 text-green-500'
+                                                : 'bg-red-500/20 text-red-500'
                                                 }`}
                                         >
                                             {channel.approved ? 'Active' : 'Disabled'}
