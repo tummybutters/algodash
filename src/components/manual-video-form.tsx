@@ -60,28 +60,25 @@ export function ManualVideoForm({ channels, onAdded, defaultStatus = 'favorited'
         <div className="neo-panel p-5 space-y-4">
             <div>
                 <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Manual add</p>
-                <h2 className="font-display text-2xl text-card-foreground">Add a podcast episode by URL</h2>
-                <p className="text-sm text-muted-foreground">
-                    Paste a YouTube URL, pick the channel, and it will land in your favorites library.
-                </p>
+                <h2 className="font-display text-xl text-card-foreground">Add episode by URL</h2>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-[1.6fr,1fr,0.8fr]">
-                <div className="neo-input-wrapper w-full">
-                    <Link2 size={16} className="neo-input-icon" />
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="neo-input-wrapper w-[280px]">
+                    <Link2 size={14} className="neo-input-icon" />
                     <input
                         value={videoUrl}
                         onChange={(event) => setVideoUrl(event.target.value)}
-                        placeholder="https://www.youtube.com/watch?v=..."
-                        className="neo-input-field"
+                        placeholder="YouTube URL or ID"
+                        className="neo-input-field text-sm"
                     />
                 </div>
                 <select
                     value={channelId}
                     onChange={(event) => setChannelId(event.target.value)}
-                    className="neo-input w-full"
+                    className="neo-input px-3 py-1.5 text-sm w-[160px]"
                 >
-                    <option value="">Select channel</option>
+                    <option value="">Channel</option>
                     {channelOptions.map((channel) => (
                         <option key={channel.id} value={channel.id}>
                             {channel.name}
@@ -92,32 +89,27 @@ export function ManualVideoForm({ channels, onAdded, defaultStatus = 'favorited'
                     type="date"
                     value={publishedAt}
                     onChange={(event) => setPublishedAt(event.target.value)}
-                    className="neo-input w-full"
+                    className="neo-input px-3 py-1.5 text-sm w-[130px]"
                 />
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-[1fr,auto]">
-                <div className="neo-input-wrapper w-full">
-                    <input
-                        value={title}
-                        onChange={(event) => setTitle(event.target.value)}
-                        placeholder="Optional title override"
-                        className="neo-input-field"
-                    />
-                </div>
+                <input
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    placeholder="Title (optional)"
+                    className="neo-input px-3 py-1.5 text-sm w-[180px]"
+                />
                 <button
                     onClick={handleSubmit}
                     disabled={isPending || !canSubmit}
-                    className="neo-button inline-flex items-center gap-2 px-5 py-3 text-sm disabled:opacity-50"
+                    className="neo-button inline-flex items-center gap-2 px-4 py-1.5 text-sm disabled:opacity-50"
                 >
-                    <Plus size={16} />
-                    Add to favorites
+                    <Plus size={14} />
+                    Add
                 </button>
             </div>
 
             {error && (
-                <div className="flex items-center gap-2 text-sm text-rose-600">
-                    <AlertCircle size={16} />
+                <div className="flex items-center gap-2 text-xs text-rose-600">
+                    <AlertCircle size={14} />
                     {error}
                 </div>
             )}

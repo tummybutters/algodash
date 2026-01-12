@@ -358,15 +358,15 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                     className="neo-input min-h-[220px]"
                 />
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="flex flex-wrap items-end gap-3">
                     <div>
-                        <label className="block text-sm text-muted-foreground mb-1 ml-2">
-                            Default channel (used when no match)
+                        <label className="block text-xs text-muted-foreground mb-1">
+                            Default channel
                         </label>
                         <select
                             value={defaultChannelId}
                             onChange={(event) => setDefaultChannelId(event.target.value)}
-                            className="neo-input"
+                            className="neo-input px-3 py-1.5 text-sm w-[180px]"
                         >
                             <option value="">No default</option>
                             {channels.map((channel) => (
@@ -376,22 +376,19 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                             ))}
                         </select>
                     </div>
-
-                    <div className="flex items-end gap-2">
-                        <button
-                            onClick={handleParse}
-                            className="neo-button inline-flex items-center gap-2 px-4 py-2"
-                        >
-                            <Upload size={16} />
-                            Preview
-                        </button>
-                        <button
-                            onClick={handleClear}
-                            className="neo-button-ghost px-4 py-2"
-                        >
-                            Clear
-                        </button>
-                    </div>
+                    <button
+                        onClick={handleParse}
+                        className="neo-button inline-flex items-center gap-2 px-4 py-1.5 text-sm"
+                    >
+                        <Upload size={14} />
+                        Preview
+                    </button>
+                    <button
+                        onClick={handleClear}
+                        className="neo-button-ghost px-4 py-1.5 text-sm"
+                    >
+                        Clear
+                    </button>
                 </div>
 
                 {parseError && (

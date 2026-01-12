@@ -71,46 +71,46 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
         filters.search;
 
     return (
-        <div className="neo-panel p-6 space-y-6">
-            <div className="flex flex-col gap-4">
-                <div className="neo-input-wrapper w-full">
-                    <Search className="neo-input-icon" size={18} />
+        <div className="neo-panel p-5 space-y-5">
+            <div className="flex flex-wrap items-center gap-3">
+                <div className="neo-input-wrapper w-[280px]">
+                    <Search className="neo-input-icon" size={16} />
                     <input
                         type="text"
                         placeholder="Search videos..."
                         value={filters.search}
                         onChange={(e) => updateFilters({ search: e.target.value })}
-                        className="neo-input-field"
+                        className="neo-input-field text-sm"
                     />
-                    <button
-                        type="button"
-                        onClick={() => updateFilters({ search: '' })}
-                        className="neo-input-clear"
-                        aria-label="Clear search"
-                    >
-                        <X size={16} />
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-4 flex-wrap">
-                    <button
-                        onClick={() => setIsExpanded(!isExpanded)}
-                        className="neo-button-ghost px-4 py-2 text-xs inline-flex items-center gap-2"
-                    >
-                        <Filter size={14} />
-                        More filters
-                    </button>
-
-                    {hasActiveFilters && (
+                    {filters.search && (
                         <button
-                            onClick={clearFilters}
-                            className="text-xs text-rose-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1"
+                            type="button"
+                            onClick={() => updateFilters({ search: '' })}
+                            className="neo-input-clear"
+                            aria-label="Clear search"
                         >
-                            <X size={12} />
-                            Clear
+                            <X size={14} />
                         </button>
                     )}
                 </div>
+
+                <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="neo-button-ghost px-3 py-1.5 text-xs inline-flex items-center gap-2"
+                >
+                    <Filter size={14} />
+                    Filters
+                </button>
+
+                {hasActiveFilters && (
+                    <button
+                        onClick={clearFilters}
+                        className="text-xs text-rose-500 hover:text-rose-600 transition-colors inline-flex items-center gap-1"
+                    >
+                        <X size={12} />
+                        Clear
+                    </button>
+                )}
             </div>
 
             <div className="flex flex-wrap gap-3">
@@ -129,17 +129,17 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
             </div>
 
             {isExpanded && (
-                <div className="pt-5 border-t border-border space-y-5">
+                <div className="pt-4 border-t border-border space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-card-foreground mb-2">
+                        <label className="block text-xs font-medium text-muted-foreground mb-2">
                             Channels
                         </label>
-                        <div className="flex flex-wrap gap-3">
+                        <div className="flex flex-wrap gap-2">
                             {channels.map((channel) => (
                                 <button
                                     key={channel.id}
                                     onClick={() => toggleChannel(channel.id)}
-                                    className={`neo-chip ${filters.channels.includes(channel.id)
+                                    className={`neo-chip text-xs ${filters.channels.includes(channel.id)
                                         ? 'bg-primary text-white border-transparent'
                                         : 'bg-muted text-muted-foreground'}`}
                                 >
@@ -149,54 +149,54 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label className="block text-sm font-medium text-card-foreground mb-2">
-                                <Calendar size={14} className="inline mr-1" />
+                    <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-muted-foreground">
+                                <Calendar size={12} className="inline mr-1" />
                                 From
                             </label>
                             <input
                                 type="date"
                                 value={filters.dateFrom}
                                 onChange={(e) => updateFilters({ dateFrom: e.target.value })}
-                                className="neo-input w-full px-3 py-2 text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="neo-input px-3 py-1.5 text-xs w-[130px]"
                             />
                         </div>
-                        <div>
-                            <label className="block text-sm font-medium text-card-foreground mb-2">
-                                <Calendar size={14} className="inline mr-1" />
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-muted-foreground">
+                                <Calendar size={12} className="inline mr-1" />
                                 To
                             </label>
                             <input
                                 type="date"
                                 value={filters.dateTo}
                                 onChange={(e) => updateFilters({ dateTo: e.target.value })}
-                                className="neo-input w-full px-3 py-2 text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                                className="neo-input px-3 py-1.5 text-xs w-[130px]"
                             />
                         </div>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-card-foreground mb-2">
+                    <div className="max-w-md">
+                        <label className="block text-xs text-muted-foreground mb-2">
                             Duration: {filters.durationMin}min - {filters.durationMax}min
                         </label>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3">
                             <input
                                 type="range"
                                 min={0}
                                 max={120}
                                 value={filters.durationMin}
                                 onChange={(e) => updateFilters({ durationMin: parseInt(e.target.value) })}
-                                className="flex-1"
+                                className="flex-1 h-1"
                             />
-                            <span className="text-muted-foreground">-</span>
+                            <span className="text-muted-foreground text-xs">–</span>
                             <input
                                 type="range"
                                 min={30}
                                 max={240}
                                 value={filters.durationMax}
                                 onChange={(e) => updateFilters({ durationMax: parseInt(e.target.value) })}
-                                className="flex-1"
+                                className="flex-1 h-1"
                             />
                         </div>
                     </div>

@@ -546,37 +546,31 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => handleDrop(event, 'urgent', urgentList.length)}
                 >
-                    <div className="space-y-4">
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <h2 className="font-display text-xl text-card-foreground">Urgent Signals</h2>
-                                <p className="text-xs text-muted-foreground">Time-sensitive picks for the next send.</p>
-                            </div>
+                    <div className="space-y-5">
+                        <div>
+                            <h2 className="font-display text-xl text-card-foreground">Urgent Signals</h2>
+                            <p className="text-xs text-muted-foreground">Time-sensitive picks for the next send.</p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
                             <input
                                 type="date"
                                 value={issueDates.urgent}
                                 onChange={(event) => updateIssueDate('urgent', event.target.value)}
-                                className="neo-input px-3 py-2 text-xs text-card-foreground w-32"
+                                className="neo-input px-3 py-1.5 text-xs text-card-foreground w-[130px]"
                             />
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="neo-input-wrapper w-full">
-                                <input
-                                    placeholder="Subject line"
-                                    value={issueMetadata.urgent.subject}
-                                    onChange={(e) => updateIssueMetadata('urgent', 'subject', e.target.value)}
-                                    className="neo-input-field text-xs font-medium"
-                                />
-                            </div>
-                            <div className="neo-input-wrapper w-full">
-                                <input
-                                    placeholder="Preview text"
-                                    value={issueMetadata.urgent.preview_text}
-                                    onChange={(e) => updateIssueMetadata('urgent', 'preview_text', e.target.value)}
-                                    className="neo-input-field text-xs"
-                                />
-                            </div>
+                            <input
+                                placeholder="Subject line"
+                                value={issueMetadata.urgent.subject}
+                                onChange={(e) => updateIssueMetadata('urgent', 'subject', e.target.value)}
+                                className="neo-input px-3 py-1.5 text-xs font-medium w-[180px]"
+                            />
+                            <input
+                                placeholder="Preview text"
+                                value={issueMetadata.urgent.preview_text}
+                                onChange={(e) => updateIssueMetadata('urgent', 'preview_text', e.target.value)}
+                                className="neo-input px-3 py-1.5 text-xs w-[180px]"
+                            />
                         </div>
                     </div>
                     <div className="space-y-3 min-h-[200px]">
@@ -592,37 +586,31 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                     onDragOver={(event) => event.preventDefault()}
                     onDrop={(event) => handleDrop(event, 'evergreen', evergreenList.length)}
                 >
-                    <div className="space-y-4">
-                        <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <h2 className="font-display text-xl text-card-foreground">Evergreen Signals</h2>
-                                <p className="text-xs text-muted-foreground">Long-horizon recommendations worth revisiting.</p>
-                            </div>
+                    <div className="space-y-5">
+                        <div>
+                            <h2 className="font-display text-xl text-card-foreground">Evergreen Signals</h2>
+                            <p className="text-xs text-muted-foreground">Long-horizon recommendations worth revisiting.</p>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3">
                             <input
                                 type="date"
                                 value={issueDates.evergreen}
                                 onChange={(event) => updateIssueDate('evergreen', event.target.value)}
-                                className="neo-input px-3 py-2 text-xs text-card-foreground w-32"
+                                className="neo-input px-3 py-1.5 text-xs text-card-foreground w-[130px]"
                             />
-                        </div>
-
-                        <div className="space-y-3">
-                            <div className="neo-input-wrapper w-full">
-                                <input
-                                    placeholder="Subject line"
-                                    value={issueMetadata.evergreen.subject}
-                                    onChange={(e) => updateIssueMetadata('evergreen', 'subject', e.target.value)}
-                                    className="neo-input-field text-xs font-medium"
-                                />
-                            </div>
-                            <div className="neo-input-wrapper w-full">
-                                <input
-                                    placeholder="Preview text"
-                                    value={issueMetadata.evergreen.preview_text}
-                                    onChange={(e) => updateIssueMetadata('evergreen', 'preview_text', e.target.value)}
-                                    className="neo-input-field text-xs"
-                                />
-                            </div>
+                            <input
+                                placeholder="Subject line"
+                                value={issueMetadata.evergreen.subject}
+                                onChange={(e) => updateIssueMetadata('evergreen', 'subject', e.target.value)}
+                                className="neo-input px-3 py-1.5 text-xs font-medium w-[180px]"
+                            />
+                            <input
+                                placeholder="Preview text"
+                                value={issueMetadata.evergreen.preview_text}
+                                onChange={(e) => updateIssueMetadata('evergreen', 'preview_text', e.target.value)}
+                                className="neo-input px-3 py-1.5 text-xs w-[180px]"
+                            />
                         </div>
                     </div>
                     <div className="space-y-3 min-h-[200px]">
