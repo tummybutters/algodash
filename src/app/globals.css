@@ -422,39 +422,34 @@ body {
    ANIMATED DELETE BUTTON
    ============================================ */
 .delete-btn {
-  width: 32px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #e62222;
+  background: #dc2626;
   border: none;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-  position: relative;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   overflow: hidden;
   transition: all 0.2s ease;
 }
 
 .delete-btn svg {
-  width: 14px;
-  height: 14px;
-  fill: white;
+  width: 12px;
+  height: 12px;
+  stroke: white;
   transition: transform 0.2s ease;
 }
 
 .delete-btn:hover {
-  background: #ff3636;
-  width: 70px;
-}
-
-.delete-btn:hover svg {
+  background: #ef4444;
   transform: scale(1.1);
 }
 
 .delete-btn:active svg {
-  transform: scale(0.9);
+  transform: scale(0.85);
 }
 
 /* ============================================

@@ -160,11 +160,12 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
     return (
         <>
             <article
-                className="neo-card p-6 space-y-4 group rise-in cursor-pointer"
+                className="neo-card p-4 space-y-3 group rise-in cursor-pointer"
                 style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
                 onClick={handleOpen}
             >
-                <div className="relative rounded-xl overflow-hidden aspect-[16/10] bg-muted">
+                {/* Thumbnail with delete button overlay */}
+                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
                     {video.thumbnail_url ? (
                         <Image
                             src={video.thumbnail_url}
@@ -177,37 +178,47 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                             No thumbnail
                         </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded-full">
+                    {/* Duration badge */}
+                    <span className="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
                         {formatDuration(video.duration_seconds)}
                     </span>
+                    {/* Delete button - top right */}
+                    <button
+                        onClick={(e) => { e.stopPropagation(); handleDelete(); }}
+                        className="delete-btn absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete"
+                        disabled={isPending}
+                    >
+                        <Trash2 size={12} />
+                    </button>
                 </div>
 
-                <div>
-                    <h3 className="font-display text-lg leading-tight line-clamp-2 text-card-foreground">
-                        {video.title}
-                    </h3>
+                {/* Title */}
+                <h3 className="font-medium text-sm leading-snug line-clamp-2 text-card-foreground">
+                    {video.title}
+                </h3>
+
+                {/* Meta info - plain text, not chips */}
+                <div className="text-xs text-muted-foreground space-y-0.5">
+                    <p>{video.channel_name || 'Unknown channel'}</p>
+                    <p>{formatDistanceToNow(new Date(video.published_at), { addSuffix: true })}</p>
                 </div>
 
-                <p className="text-sm text-muted-foreground">
-                    {video.channel_name || 'Unknown channel'}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3">
-                    <span className="neo-chip bg-muted text-muted-foreground">
-                        {formatDistanceToNow(new Date(video.published_at), { addSuffix: true })}
-                    </span>
-                    <span className={`neo-chip ${VIDEO_STATUS_STYLES[status]}`}>
+                {/* Compact status row */}
+                <div className="flex items-center gap-2 text-[10px]" onClick={(e) => e.stopPropagation()}>
+                    <span className={`px-1.5 py-0.5 rounded font-medium ${VIDEO_STATUS_STYLES[status]}`}>
                         {status}
                     </span>
+                    <span className="text-muted-foreground">•</span>
+                    <span className={`${transcriptStatus === 'success' ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                        T:{transcriptStatus === 'success' ? '✓' : transcriptStatus === 'pending' ? '...' : '✗'}
+                    </span>
+                    <span className={`${analysisStatus === 'success' ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+                        S:{analysisStatus === 'success' ? '✓' : analysisStatus === 'pending' ? '...' : '✗'}
+                    </span>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
-                    <ProcessPill status={transcriptStatus} label="Transcript" />
-                    <ProcessPill status={analysisStatus} label="Summary" />
-                </div>
-
-                {/* Status toggles */}
+                {/* Status toggles - compact row */}
                 <div className="status-toggles" onClick={(e) => e.stopPropagation()}>
                     {STATUS_OPTIONS.map((option) => (
                         <button
@@ -216,17 +227,9 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                             className={`status-toggle ${status === option.value ? 'status-toggle-active' : ''}`}
                             disabled={isPending}
                         >
-                            {option.label}
+                            {option.label.slice(0, 3)}
                         </button>
                     ))}
-                    <button
-                        onClick={handleDelete}
-                        className="delete-btn"
-                        title="Delete video"
-                        disabled={isPending}
-                    >
-                        <Trash2 size={14} />
-                    </button>
                 </div>
             </article>
 
