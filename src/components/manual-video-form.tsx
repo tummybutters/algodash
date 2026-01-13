@@ -29,7 +29,7 @@ export function ManualVideoForm({
     const [title, setTitle] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
-    const canSubmit = videoUrl.trim().length > 0 && channelId.length > 0 && publishedAt.length > 0;
+    const canSubmit = videoUrl.trim().length > 0 && publishedAt.length > 0;
 
     const channelOptions = useMemo(
         () => channels.map((channel) => ({ id: channel.id, name: channel.name })),
@@ -43,7 +43,7 @@ export function ManualVideoForm({
             try {
                 await addManualVideo({
                     video_url: videoUrl,
-                    channel_id: channelId,
+                    channel_id: channelId || undefined,
                     published_at: publishedAt,
                     title: title || undefined,
                     status: defaultStatus,
@@ -82,7 +82,7 @@ export function ManualVideoForm({
                     onChange={(event) => setChannelId(event.target.value)}
                     className="neo-input px-3 py-1.5 text-sm w-[160px]"
                 >
-                    <option value="">Channel</option>
+                    <option value="">Channel (optional)</option>
                     {channelOptions.map((channel) => (
                         <option key={channel.id} value={channel.id}>
                             {channel.name}

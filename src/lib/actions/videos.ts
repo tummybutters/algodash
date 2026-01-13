@@ -5,6 +5,56 @@ import { revalidatePath } from 'next/cache';
 import type { VideoStatus, ProcessStatus } from '@/types/database';
 
 const TRANSCRIPT_API_URL = 'https://transcriptapi.com/api/v2/youtube/transcript';
+const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+
+type YoutubeVideoResponse = {
+    items?: Array<{
+        snippet?: {
+            title?: string;
+            channelId?: string;
+            channelTitle?: string;
+            thumbnails?: Record<string, { url?: string }>;
+        };
+    }>;
+};
+
+function pickYoutubeThumbnail(thumbnails?: Record<string, { url?: string }>) {
+    if (!thumbnails) return null;
+    return (
+        thumbnails.maxres?.url
+        || thumbnails.standard?.url
+        || thumbnails.high?.url
+        || thumbnails.medium?.url
+        || thumbnails.default?.url
+        || null
+    );
+}
+
+async function fetchYoutubeMetadata(videoId: string) {
+    const apiKey = process.env.YOUTUBE_API_KEY;
+    if (!apiKey) return null;
+
+    const detailsUrl = new URL(`${YOUTUBE_API_BASE}/videos`);
+    detailsUrl.searchParams.set('part', 'snippet');
+    detailsUrl.searchParams.set('id', videoId);
+    detailsUrl.searchParams.set('key', apiKey);
+
+    try {
+        const response = await fetch(detailsUrl.toString(), { cache: 'no-store' });
+        if (!response.ok) return null;
+        const data = (await response.json()) as YoutubeVideoResponse;
+        const snippet = data.items?.[0]?.snippet;
+        if (!snippet) return null;
+        return {
+            title: typeof snippet.title === 'string' ? snippet.title : null,
+            channelId: typeof snippet.channelId === 'string' ? snippet.channelId : null,
+            channelTitle: typeof snippet.channelTitle === 'string' ? snippet.channelTitle : null,
+            thumbnailUrl: pickYoutubeThumbnail(snippet.thumbnails),
+        };
+    } catch {
+        return null;
+    }
+}
 
 function revalidateCoreViews() {
     revalidatePath('/');
@@ -399,7 +449,7 @@ function normalizePublishDate(input: string): string | null {
 
 export async function addManualVideo(input: {
     video_url: string;
-    channel_id: string;
+    channel_id?: string | null;
     published_at: string;
     title?: string | null;
     status?: VideoStatus;
@@ -411,13 +461,71 @@ export async function addManualVideo(input: {
         throw new Error('Enter a valid YouTube URL or ID.');
     }
 
-    if (!input.channel_id) {
-        throw new Error('Select a channel.');
-    }
-
     const publishedAt = normalizePublishDate(input.published_at);
     if (!publishedAt) {
         throw new Error('Enter a valid publish date.');
+    }
+
+    const channelInput = input.channel_id?.trim();
+    let resolvedChannelId = channelInput && channelInput.length > 0 ? channelInput : null;
+    let resolvedChannelName: string | null = null;
+    let youtubeMeta = !resolvedChannelId ? await fetchYoutubeMetadata(youtubeVideoId) : null;
+
+    if (!resolvedChannelId && youtubeMeta?.channelId) {
+        const { data: existingChannel, error: channelError } = await supabase
+            .from('channels')
+            .select('id, name')
+            .eq('youtube_channel_id', youtubeMeta.channelId)
+            .maybeSingle();
+
+        if (channelError) {
+            throw new Error(`Failed to load channel: ${channelError.message}`);
+        }
+
+        if (existingChannel) {
+            resolvedChannelId = existingChannel.id;
+            resolvedChannelName = existingChannel.name;
+        } else {
+            const channelName = (youtubeMeta.channelTitle || youtubeMeta.channelId).trim();
+            const { data: createdChannel, error: createError } = await supabase
+                .from('channels')
+                .insert({
+                    youtube_channel_id: youtubeMeta.channelId,
+                    name: channelName,
+                    approved: true,
+                })
+                .select('id')
+                .single();
+
+            if (createError) {
+                throw new Error(`Failed to create channel: ${createError.message}`);
+            }
+
+            resolvedChannelId = createdChannel.id;
+            resolvedChannelName = channelName;
+        }
+    }
+
+    if (!resolvedChannelId) {
+        throw new Error('Select a channel or configure YOUTUBE_API_KEY to auto-detect channel.');
+    }
+
+    if (!resolvedChannelName) {
+        const { data: channelRow, error: channelRowError } = await supabase
+            .from('channels')
+            .select('name')
+            .eq('id', resolvedChannelId)
+            .maybeSingle();
+
+        if (channelRowError) {
+            throw new Error(`Failed to load channel details: ${channelRowError.message}`);
+        }
+
+        if (!channelRow) {
+            throw new Error('Selected channel not found.');
+        }
+
+        resolvedChannelName = channelRow.name;
     }
 
     let oembedTitle: string | null = null;
@@ -436,19 +544,28 @@ export async function addManualVideo(input: {
         oembedThumbnail = null;
     }
 
-    const title = (input.title && input.title.trim().length > 0 ? input.title.trim() : oembedTitle);
+    if (!youtubeMeta) {
+        youtubeMeta = await fetchYoutubeMetadata(youtubeVideoId);
+    }
+
+    const title = (input.title && input.title.trim().length > 0
+        ? input.title.trim()
+        : oembedTitle || youtubeMeta?.title);
     if (!title) {
         throw new Error('Title is required.');
     }
 
     const payload = {
         youtube_video_id: youtubeVideoId,
-        channel_id: input.channel_id,
+        channel_id: resolvedChannelId,
+        channel_name: resolvedChannelName,
         title,
         description: null,
         published_at: publishedAt,
         duration_seconds: null,
-        thumbnail_url: oembedThumbnail || `https://i.ytimg.com/vi/${youtubeVideoId}/hqdefault.jpg`,
+        thumbnail_url: oembedThumbnail
+            || youtubeMeta?.thumbnailUrl
+            || `https://i.ytimg.com/vi/${youtubeVideoId}/hqdefault.jpg`,
         status: input.status ?? 'favorited',
     };
 
