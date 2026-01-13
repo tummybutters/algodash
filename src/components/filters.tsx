@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { X, Search, Filter, Calendar } from 'lucide-react';
-import type { VideoStatus, Channel } from '@/types/database';
+import type { VideoStatus, ChannelOption } from '@/types/database';
 import { DEFAULT_DURATION_MAX_MINUTES } from '@/lib/supabase/video-queries';
 
 interface FiltersProps {
-    channels: Channel[];
+    channels: ChannelOption[];
     onFilterChange: (filters: FilterState) => void;
     filters: FilterState;
 }

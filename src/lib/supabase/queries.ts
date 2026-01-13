@@ -1,5 +1,5 @@
 import { createClient } from './server';
-import type { VideoFilters, VideoListItem, Video, Channel } from '@/types/database';
+import type { VideoFilters, VideoListItem, Video, Channel, ChannelOption } from '@/types/database';
 import { fetchVideoDetail, fetchVideoList } from './video-queries';
 
 /**
@@ -13,7 +13,7 @@ export async function getVideosForTriage(filters: VideoFilters): Promise<{
     const supabase = await createClient();
     const { offset, limit, ...filterParams } = filters;
 
-    return fetchVideoList(supabase, filterParams, { offset, limit });
+    return fetchVideoList(supabase, filterParams, { offset, limit, count: 'planned' });
 }
 
 /**
@@ -51,19 +51,19 @@ export async function getChannels(): Promise<{
  * Get approved channels only
  */
 export async function getApprovedChannels(): Promise<{
-    data: Channel[] | null;
+    data: ChannelOption[] | null;
     error: Error | null;
 }> {
     const supabase = await createClient();
 
     const { data, error } = await supabase
         .from('channels')
-        .select('*')
+        .select('id, name')
         .eq('approved', true)
         .order('name');
 
     return {
-        data,
+        data: data as ChannelOption[] | null,
         error: error ? new Error(error.message) : null,
     };
 }

@@ -15,6 +15,8 @@ export interface Channel {
     updated_at: string;
 }
 
+export type ChannelOption = Pick<Channel, 'id' | 'name'>;
+
 export interface Video {
     id: string;
     youtube_video_id: string;

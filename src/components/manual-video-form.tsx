@@ -3,11 +3,11 @@
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, Link2, Plus } from 'lucide-react';
-import type { Channel, VideoStatus } from '@/types/database';
+import type { ChannelOption, VideoStatus } from '@/types/database';
 import { addManualVideo } from '@/lib/actions/videos';
 
 type ManualVideoFormProps = {
-    channels: Channel[];
+    channels: ChannelOption[];
     onAdded?: () => void;
     defaultStatus?: VideoStatus;
 };

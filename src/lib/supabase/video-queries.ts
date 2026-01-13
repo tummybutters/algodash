@@ -51,16 +51,18 @@ export function applyVideoListFilters<
 export async function fetchVideoList(
     supabase: SupabaseClient,
     filters: VideoFilterParams,
-    options: { offset: number; limit: number }
+    options: { offset: number; limit: number; count?: 'exact' | 'planned' | 'estimated' | null }
 ): Promise<{
     data: VideoListItem[] | null;
     error: Error | null;
     count: number | null;
 }> {
-    const query = applyVideoListFilters(
-        supabase.from('videos_list').select('*', { count: 'exact' }),
-        filters
-    )
+    const countStrategy = options.count ?? 'planned';
+    const baseQuery = countStrategy
+        ? supabase.from('videos_list').select('*', { count: countStrategy })
+        : supabase.from('videos_list').select('*');
+
+    const query = applyVideoListFilters(baseQuery, filters)
         .order('published_at', { ascending: false })
         .range(options.offset, options.offset + options.limit - 1);
 
@@ -69,7 +71,7 @@ export async function fetchVideoList(
     return {
         data: data as VideoListItem[] | null,
         error: error ? new Error(error.message) : null,
-        count,
+        count: typeof count === 'number' ? count : null,
     };
 }
 

@@ -5,13 +5,13 @@ import { VideoCard } from './video-card';
 import { Filters, FilterState } from './filters';
 import { createClient } from '@/lib/supabase/client';
 import { DEFAULT_DURATION_MAX_MINUTES, fetchVideoDetail, fetchVideoList } from '@/lib/supabase/video-queries';
-import type { VideoListItem, Channel, Video } from '@/types/database';
+import type { VideoListItem, ChannelOption, Video } from '@/types/database';
 import { Loader2 } from 'lucide-react';
 
 interface VideoFeedProps {
     initialVideos: VideoListItem[];
     initialCount: number;
-    channels: Channel[];
+    channels: ChannelOption[];
     title?: string;
     subtitle?: string;
     defaultFilters?: Partial<FilterState>;
@@ -49,7 +49,7 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
         const { data, count } = await fetchVideoList(
             supabase,
             currentFilters,
-            { offset: currentOffset, limit: PAGE_SIZE }
+            { offset: currentOffset, limit: PAGE_SIZE, count: append ? null : 'planned' }
         );
 
         if (data) {
