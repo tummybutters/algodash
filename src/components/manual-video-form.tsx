@@ -8,7 +8,7 @@ import { addManualVideo } from '@/lib/actions/videos';
 
 type ManualVideoFormProps = {
     channels: Channel[];
-    onAdded: () => void;
+    onAdded?: () => void;
     defaultStatus?: VideoStatus;
 };
 
@@ -17,7 +17,11 @@ function todayDateString() {
     return now.toISOString().slice(0, 10);
 }
 
-export function ManualVideoForm({ channels, onAdded, defaultStatus = 'favorited' }: ManualVideoFormProps) {
+export function ManualVideoForm({
+    channels,
+    onAdded = () => {},
+    defaultStatus = 'favorited',
+}: ManualVideoFormProps) {
     const router = useRouter();
     const [videoUrl, setVideoUrl] = useState('');
     const [channelId, setChannelId] = useState('');

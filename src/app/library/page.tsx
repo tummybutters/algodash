@@ -18,7 +18,7 @@ export default async function LibraryPage() {
     return (
         <div className="min-h-screen">
             <main className="px-8 py-8 space-y-8">
-                <ManualVideoForm channels={channels} onAdded={() => {}} defaultStatus="favorited" />
+                <ManualVideoForm channels={channels} defaultStatus="favorited" />
                 <VideoFeed
                     initialVideos={videos}
                     initialCount={count}
