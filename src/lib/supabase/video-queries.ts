@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 import type { VideoFilters, VideoListItem, Video } from '@/types/database';
 
 export const DEFAULT_DURATION_MAX_MINUTES = 240;
@@ -10,10 +11,12 @@ export type VideoDetail = Pick<
     'transcript_text' | 'analysis_text' | 'notes' | 'transcript_error' | 'analysis_error'
 >;
 
-export function applyVideoListFilters(
-    query: ReturnType<SupabaseClient['from']>,
+export function applyVideoListFilters<
+    Query extends PostgrestFilterBuilder<any, any, any, any, any, any, any>
+>(
+    query: Query,
     filters: VideoFilterParams
-) {
+): Query {
     let nextQuery = query;
 
     if (filters.channels?.length) {
