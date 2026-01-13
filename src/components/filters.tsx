@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { X, Search, Filter, Calendar } from 'lucide-react';
 import type { VideoStatus, Channel } from '@/types/database';
+import { DEFAULT_DURATION_MAX_MINUTES } from '@/lib/supabase/video-queries';
 
 interface FiltersProps {
     channels: Channel[];
@@ -55,7 +56,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
             dateFrom: '',
             dateTo: '',
             durationMin: 0,
-            durationMax: 240,
+            durationMax: DEFAULT_DURATION_MAX_MINUTES,
             search: '',
         };
         onFilterChange(cleared);
@@ -67,7 +68,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
         filters.dateFrom ||
         filters.dateTo ||
         filters.durationMin > 0 ||
-        filters.durationMax < 240 ||
+        filters.durationMax < DEFAULT_DURATION_MAX_MINUTES ||
         filters.search;
 
     return (
@@ -193,7 +194,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                             <input
                                 type="range"
                                 min={30}
-                                max={240}
+                                max={DEFAULT_DURATION_MAX_MINUTES}
                                 value={filters.durationMax}
                                 onChange={(e) => updateFilters({ durationMax: parseInt(e.target.value) })}
                                 className="flex-1 h-1"

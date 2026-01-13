@@ -2,8 +2,15 @@
 
 import { createServiceClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import type { NewsletterItemFields, NewsletterItemWithVideo, NewsletterIssue } from '@/types/database';
-import { renderNewsletterHtml } from '../newsletter-renderer';
+import type { NewsletterItemFields, NewsletterIssue } from '@/types/database';
+import { getESPProvider, sendCampaignNow, sendTestEmail as espSendTestEmail } from '../esp';
+import {
+    assertPublishReady,
+    buildCampaignPayload,
+    resolveIssueStatus,
+    resolvePublishPlan,
+} from '@/lib/newsletters/publishing';
+import { mapNewsletterItemsFromView } from '@/lib/newsletters/normalize';
 
 function revalidateBuilder() {
     revalidatePath('/builder');
@@ -145,7 +152,8 @@ export async function updateNewsletterIssue(issueId: string, updates: {
 export async function updateNewsletterIssueDate(issueId: string, issueDate: string) {
     return updateNewsletterIssue(issueId, { issue_date: issueDate });
 }
-export async function publishNewsletter(issueId: string) {
+
+export async function publishNewsletter(issueId: string, options?: { sendAt?: string; sendNow?: boolean }) {
     const supabase = createServiceClient();
 
     // 1. Fetch issue and items
@@ -169,44 +177,51 @@ export async function publishNewsletter(issueId: string) {
         throw new Error(`Failed to fetch items: ${itemsError.message}`);
     }
 
-    // Transform view items to the correct type for renderer
-    const itemsWithVideo = (items || []).map(item => ({
-        ...item,
-        video: {
-            id: item.video_id,
-            title: item.title,
-            channel_name: item.channel_name,
-            thumbnail_url: item.thumbnail_url,
-            video_url: item.video_url,
-            duration_seconds: item.duration_seconds,
-            published_at: item.published_at
+    // 2. Normalize data + build payload
+    const itemsWithVideo = mapNewsletterItemsFromView(items || []);
+    const typedIssue = issue as NewsletterIssue;
+
+    assertPublishReady(typedIssue, itemsWithVideo);
+    const payload = buildCampaignPayload(typedIssue, itemsWithVideo);
+    const plan = resolvePublishPlan(options, typedIssue);
+
+    // 3. Create or update campaign
+    const esp = getESPProvider();
+    const campaign = typedIssue.esp_campaign_id
+        ? await esp.updateCampaign(typedIssue.esp_campaign_id, payload)
+        : await esp.createCampaign(payload);
+
+    let updatedCampaign = campaign;
+    if (plan.action === 'schedule' && plan.sendAt) {
+        if (
+            campaign.status !== 'sent'
+            && campaign.status !== 'archived'
+            && (campaign.status !== 'scheduled' || campaign.scheduled_at !== plan.sendAt)
+        ) {
+            updatedCampaign = await esp.scheduleCampaign(campaign.id, plan.sendAt);
         }
-    })) as NewsletterItemWithVideo[];
+    } else if (plan.action === 'send') {
+        if (campaign.status !== 'sent') {
+            await sendCampaignNow(campaign.id);
+        }
+    }
 
-    // 2. Render HTML
-    const html = renderNewsletterHtml(issue as NewsletterIssue, itemsWithVideo);
+    const nextStatus = resolveIssueStatus(plan.action, updatedCampaign.status);
+    const nowIso = new Date().toISOString();
+    const nextScheduledAt =
+        nextStatus === 'scheduled'
+            ? plan.sendAt ?? updatedCampaign.scheduled_at ?? typedIssue.scheduled_at ?? null
+            : nextStatus === 'published'
+                ? updatedCampaign.scheduled_at ?? nowIso
+                : null;
 
-    // 3. QA Checks
-    if (!issue.subject) throw new Error("Missing subject line.");
-    if (itemsWithVideo.length === 0) throw new Error("Issue has no items.");
-
-    // 4. Send to ESP (Placeholder)
-    console.log("Publishing issue to ESP...", {
-        subject: issue.subject,
-        itemCount: itemsWithVideo.length,
-        htmlLength: html.length
-    });
-
-    // TODO: Implement actual ESP API call here
-    const espCampaignId = `fake_${Date.now()}`;
-
-    // 5. Update status
+    // 4. Update issue status
     const { error: updateError } = await supabase
         .from('newsletter_issues')
         .update({
-            status: 'scheduled',
-            esp_campaign_id: espCampaignId,
-            scheduled_at: new Date().toISOString()
+            status: nextStatus,
+            esp_campaign_id: updatedCampaign.id,
+            scheduled_at: nextScheduledAt,
         })
         .eq('id', issueId);
 
@@ -215,5 +230,57 @@ export async function publishNewsletter(issueId: string) {
     }
 
     revalidateBuilder();
-    return { success: true, espCampaignId };
+    return { success: true, espCampaignId: updatedCampaign.id, status: nextStatus };
+}
+
+export async function sendTestNewsletter(issueId: string, testEmails: string[]) {
+    const supabase = createServiceClient();
+
+    // 1. Fetch issue and items
+    const { data: issue, error: issueError } = await supabase
+        .from('newsletter_issues')
+        .select('*')
+        .eq('id', issueId)
+        .single();
+
+    if (issueError || !issue) {
+        throw new Error(`Failed to fetch issue: ${issueError?.message}`);
+    }
+
+    const { data: items, error: itemsError } = await supabase
+        .from('newsletter_items_view')
+        .select('*')
+        .eq('issue_id', issueId)
+        .order('position', { ascending: true });
+
+    if (itemsError) {
+        throw new Error(`Failed to fetch items: ${itemsError.message}`);
+    }
+
+    const typedIssue = issue as NewsletterIssue;
+    const itemsWithVideo = mapNewsletterItemsFromView(items || []);
+
+    assertPublishReady(typedIssue, itemsWithVideo);
+    const payload = buildCampaignPayload(typedIssue, itemsWithVideo);
+    const esp = getESPProvider();
+
+    const campaign = typedIssue.esp_campaign_id
+        ? await esp.updateCampaign(typedIssue.esp_campaign_id, payload)
+        : await esp.createCampaign(payload);
+
+    if (!typedIssue.esp_campaign_id) {
+        const { error: updateError } = await supabase
+            .from('newsletter_issues')
+            .update({ esp_campaign_id: campaign.id })
+            .eq('id', issueId);
+
+        if (updateError) {
+            throw new Error(`Failed to store campaign id: ${updateError.message}`);
+        }
+    }
+
+    // Send test email without scheduling
+    await espSendTestEmail(campaign.id, testEmails);
+
+    return { success: true };
 }

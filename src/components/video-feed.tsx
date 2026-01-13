@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { VideoCard } from './video-card';
 import { Filters, FilterState } from './filters';
 import { createClient } from '@/lib/supabase/client';
+import { DEFAULT_DURATION_MAX_MINUTES, fetchVideoDetail, fetchVideoList } from '@/lib/supabase/video-queries';
 import type { VideoListItem, Channel, Video } from '@/types/database';
 import { Loader2 } from 'lucide-react';
 
@@ -22,7 +23,7 @@ const DEFAULT_FILTERS: FilterState = {
     dateFrom: '',
     dateTo: '',
     durationMin: 0,
-    durationMax: 240,
+    durationMax: DEFAULT_DURATION_MAX_MINUTES,
     search: '',
 };
 
@@ -45,37 +46,11 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
     const fetchVideos = useCallback(async (currentFilters: FilterState, currentOffset: number, append: boolean) => {
         setIsLoading(true);
 
-        let query = supabase
-            .from('videos_list')
-            .select('*', { count: 'exact' });
-
-        if (currentFilters.channels.length > 0) {
-            query = query.in('channel_id', currentFilters.channels);
-        }
-        if (currentFilters.statuses.length > 0) {
-            query = query.in('status', currentFilters.statuses);
-        }
-        if (currentFilters.dateFrom) {
-            query = query.gte('published_at', currentFilters.dateFrom);
-        }
-        if (currentFilters.dateTo) {
-            query = query.lte('published_at', currentFilters.dateTo);
-        }
-        if (currentFilters.durationMin > 0) {
-            query = query.gte('duration_seconds', currentFilters.durationMin * 60);
-        }
-        if (currentFilters.durationMax < 240) {
-            query = query.lte('duration_seconds', currentFilters.durationMax * 60);
-        }
-        if (currentFilters.search) {
-            query = query.textSearch('search_tsv', currentFilters.search, { type: 'websearch' });
-        }
-
-        query = query
-            .order('published_at', { ascending: false })
-            .range(currentOffset, currentOffset + PAGE_SIZE - 1);
-
-        const { data, count } = await query;
+        const { data, count } = await fetchVideoList(
+            supabase,
+            currentFilters,
+            { offset: currentOffset, limit: PAGE_SIZE }
+        );
 
         if (data) {
             if (append) {
@@ -122,11 +97,7 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
     }, [loadMore]);
 
     const handleExpand = async (id: string): Promise<Pick<Video, 'transcript_text' | 'analysis_text' | 'transcript_error' | 'analysis_error'>> => {
-        const { data } = await supabase
-            .from('videos')
-            .select('transcript_text, analysis_text, transcript_error, analysis_error')
-            .eq('id', id)
-            .single();
+        const { data } = await fetchVideoDetail(supabase, id);
 
         return data || { transcript_text: null, analysis_text: null, transcript_error: null, analysis_error: null };
     };
