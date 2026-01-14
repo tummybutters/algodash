@@ -58,19 +58,19 @@ export function IssuePanel({
                         type="date"
                         value={issueDate}
                         onChange={(event) => onDateChange(event.target.value)}
-                        className="gpt-input px-4 py-2 text-sm"
+                        className="gpt-input px-4 py-2 text-sm w-full max-w-[170px]"
                     />
                     <input
                         placeholder="Subject line"
                         value={subject}
                         onChange={(event) => onSubjectChange(event.target.value)}
-                        className="gpt-input px-4 py-2 text-sm font-medium flex-1 min-w-[150px]"
+                        className="gpt-input px-4 py-2 text-sm font-medium w-full max-w-[260px]"
                     />
                     <input
                         placeholder="Preview text"
                         value={previewText}
                         onChange={(event) => onPreviewTextChange(event.target.value)}
-                        className="gpt-input px-4 py-2 text-sm flex-1 min-w-[150px]"
+                        className="gpt-input px-4 py-2 text-sm w-full max-w-[320px]"
                     />
                 </div>
             </div>

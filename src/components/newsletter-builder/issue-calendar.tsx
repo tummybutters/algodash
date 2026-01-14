@@ -50,7 +50,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
     const isStandardSendDay = selectedDay ? STANDARD_SEND_DAYS.has(selectedDay.getDay()) : false;
 
     return (
-        <section className="gpt-panel p-6 grid gap-6 lg:grid-cols-[1.1fr,0.7fr]">
+        <section className="gpt-panel p-6 grid gap-6 lg:grid-cols-[1.1fr,0.7fr] max-w-5xl w-full mx-auto">
             <div className="space-y-5">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -81,7 +81,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                     </div>
                 </div>
 
-                <div className="grid grid-cols-7 text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
+                <div className="grid grid-cols-7 text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                     {DAY_LABELS.map((day) => (
                         <div key={day} className="text-center py-2">
                             {day}
@@ -98,7 +98,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                         const isEvergreen = issueDates.evergreen === dateKey;
                         const isStandard = STANDARD_SEND_DAYS.has(day.getDay());
 
-                        const base = 'rounded-2xl px-3 py-3 text-sm transition-colors';
+                        const base = 'rounded-2xl px-2.5 py-2.5 text-xs transition-colors';
                         const classes = [
                             base,
                             inMonth ? 'bg-secondary text-card-foreground' : 'bg-transparent text-muted-foreground/50',

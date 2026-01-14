@@ -13,7 +13,7 @@ export default async function BuilderPage() {
 
     return (
         <div className="min-h-screen">
-            <main className="px-6 py-8 lg:px-10">
+            <main className="px-6 py-8 lg:px-10 max-w-6xl mx-auto">
                 <NewsletterBuilder
                     issues={issues}
                     draftIssues={drafts}
