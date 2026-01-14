@@ -32,100 +32,104 @@ function formatDuration(seconds: number | null): string {
 function renderItem(item: NewsletterItemWithVideo, index: number, isUrgent: boolean): string {
     const fields = item.fields || {};
     const video = item.video;
-    const accentColor = isUrgent ? '#6366f1' : '#10b981';
-    const sectionLabel = isUrgent ? 'Must Watch (Urgent)' : 'Must Keep (Evergreen)';
+    const accentColor = isUrgent ? '#3b82f6' : '#38bdf8';
 
     return `
     <tr>
-      <td style="padding: 24px 0; border-bottom: 1px solid #e5e7eb;">
-        ${index === 0 ? `<p style="margin: 0 0 16px; font-size: 12px; font-weight: 600; color: ${accentColor}; text-transform: uppercase; letter-spacing: 0.1em;">${sectionLabel}</p>` : ''}
-
-        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <td style="padding: 12px 0;">
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background: #0f172a; border: 1px solid #1f2a44; border-radius: 16px;">
           <tr>
-            <td width="120" valign="top" style="padding-right: 16px;">
-              ${video.thumbnail_url ? `<img src="${escapeHtml(video.thumbnail_url)}" alt="" width="120" height="68" style="border-radius: 8px; display: block;">` : '<div style="width: 120px; height: 68px; background: #e5e7eb; border-radius: 8px;"></div>'}
-            </td>
-            <td valign="top">
-              <a href="${escapeHtml(video.video_url)}" style="color: #111827; text-decoration: none; font-size: 16px; font-weight: 600; line-height: 1.4;">
-                ${escapeHtml(fields.podcast_name || video.channel_name || 'Podcast')} — ${escapeHtml(fields.guest_name || 'Guest')}
-              </a>
-              <p style="margin: 4px 0 0; font-size: 13px; color: #6b7280;">
-                ${escapeHtml(video.channel_name || '')} ${video.duration_seconds ? `· ${formatDuration(video.duration_seconds)}` : ''}
+            <td style="padding: 18px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="110" valign="top" style="padding-right: 16px;">
+                    ${video.thumbnail_url ? `<img src="${escapeHtml(video.thumbnail_url)}" alt="" width="110" height="62" style="border-radius: 10px; display: block;">` : '<div style="width: 110px; height: 62px; background: #0b1220; border-radius: 10px;"></div>'}
+                  </td>
+                  <td valign="top">
+                    <a href="${escapeHtml(video.video_url)}" style="color: #e2e8f0; text-decoration: none; font-size: 16px; font-weight: 600; line-height: 1.35;">
+                      ${escapeHtml(fields.podcast_name || video.channel_name || 'Podcast')} — ${escapeHtml(fields.guest_name || 'Guest')}
+                    </a>
+                    <p style="margin: 6px 0 0; font-size: 12px; color: #94a3b8;">
+                      ${escapeHtml(video.channel_name || '')} ${video.duration_seconds ? `· ${formatDuration(video.duration_seconds)}` : ''}
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              ${fields.actor ? `
+              <div style="margin-top: 14px;">
+                <p style="margin: 0 0 4px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Actor</p>
+                <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.6;">${escapeHtml(fields.actor)}</p>
+              </div>
+              ` : ''}
+
+              ${fields.topics ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 4px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Topics</p>
+                <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.6;">${escapeHtml(fields.topics)}</p>
+              </div>
+              ` : ''}
+
+              ${isUrgent && fields.signals && fields.signals.length > 0 ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 8px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Signals</p>
+                <ul style="margin: 0; padding-left: 16px; font-size: 13px; color: #e2e8f0; line-height: 1.6;">
+                  ${fields.signals.map((signal: string) => `<li style="margin-bottom: 4px;">${escapeHtml(signal)}</li>`).join('')}
+                </ul>
+              </div>
+              ` : ''}
+
+              ${!isUrgent && fields.framework ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 4px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Framework</p>
+                <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.6;">${escapeHtml(fields.framework)}</p>
+              </div>
+              ` : ''}
+
+              ${!isUrgent && fields.why_compounds ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 4px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Why it compounds</p>
+                <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.6;">${escapeHtml(fields.why_compounds)}</p>
+              </div>
+              ` : ''}
+
+              ${!isUrgent && fields.nuggets && fields.nuggets.length > 0 ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 8px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Nuggets</p>
+                <ul style="margin: 0; padding-left: 16px; font-size: 13px; color: #e2e8f0; line-height: 1.6;">
+                  ${fields.nuggets.map((nugget: string) => `<li style="margin-bottom: 4px;">${escapeHtml(nugget)}</li>`).join('')}
+                </ul>
+              </div>
+              ` : ''}
+
+              ${isUrgent && fields.why_now ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 4px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Why it matters now</p>
+                <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.6;">${escapeHtml(fields.why_now)}</p>
+              </div>
+              ` : ''}
+
+              ${fields.listen_if || fields.skip_if ? `
+              <div style="margin-top: 12px;">
+                <p style="margin: 0 0 4px; font-size: 10px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em;">Listen or Skip</p>
+                <p style="margin: 0; font-size: 13px; color: #e2e8f0; line-height: 1.6;">
+                  ${fields.listen_if ? `Listen if ${escapeHtml(fields.listen_if)}.` : ''}
+                  ${fields.skip_if ? ` Skip if ${escapeHtml(fields.skip_if)}.` : ''}
+                </p>
+              </div>
+              ` : ''}
+
+              <p style="margin: 12px 0 0; font-size: 11px; color: #94a3b8;">
+                <strong style="color: ${accentColor};">Relevance:</strong>
+                ${isUrgent ? escapeHtml(fields.relevance_horizon || 'Time-sensitive') : 'Multi-year'}
               </p>
+
+              <a href="${escapeHtml(video.video_url)}" style="display: inline-block; margin-top: 14px; font-size: 12px; font-weight: 600; color: ${accentColor}; text-decoration: none;">
+                Open episode &rarr;
+              </a>
             </td>
           </tr>
         </table>
-
-        ${fields.actor ? `
-        <div style="margin-top: 16px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Actor</p>
-          <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.5;">${escapeHtml(fields.actor)}</p>
-        </div>
-        ` : ''}
-
-        ${fields.topics ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Topics</p>
-          <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.5;">${escapeHtml(fields.topics)}</p>
-        </div>
-        ` : ''}
-
-        ${isUrgent && fields.signals && fields.signals.length > 0 ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Signals</p>
-          <ul style="margin: 0; padding-left: 16px; font-size: 14px; color: #374151; line-height: 1.6;">
-            ${fields.signals.map((signal: string) => `<li style="margin-bottom: 4px;">${escapeHtml(signal)}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
-
-        ${!isUrgent && fields.framework ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Framework / Assumption</p>
-          <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.5;">${escapeHtml(fields.framework)}</p>
-        </div>
-        ` : ''}
-
-        ${!isUrgent && fields.why_compounds ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Why it compounds</p>
-          <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.5;">${escapeHtml(fields.why_compounds)}</p>
-        </div>
-        ` : ''}
-
-        ${!isUrgent && fields.nuggets && fields.nuggets.length > 0 ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 8px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Nuggets</p>
-          <ul style="margin: 0; padding-left: 16px; font-size: 14px; color: #374151; line-height: 1.6;">
-            ${fields.nuggets.map((nugget: string) => `<li style="margin-bottom: 4px;">${escapeHtml(nugget)}</li>`).join('')}
-          </ul>
-        </div>
-        ` : ''}
-
-        ${isUrgent && fields.why_now ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Why it matters now</p>
-          <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.5;">${escapeHtml(fields.why_now)}</p>
-        </div>
-        ` : ''}
-
-        ${fields.listen_if || fields.skip_if ? `
-        <div style="margin-top: 12px;">
-          <p style="margin: 0 0 4px; font-size: 11px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">Listen or Skip</p>
-          <p style="margin: 0; font-size: 14px; color: #374151; line-height: 1.5;">
-            ${fields.listen_if ? `Listen if ${escapeHtml(fields.listen_if)}.` : ''}
-            ${fields.skip_if ? ` Skip if ${escapeHtml(fields.skip_if)}.` : ''}
-          </p>
-        </div>
-        ` : ''}
-
-        <p style="margin: 12px 0 0; font-size: 12px; color: #9ca3af;">
-          <strong>Relevance horizon:</strong> ${isUrgent ? escapeHtml(fields.relevance_horizon || 'Time-sensitive') : 'Multi-year'}
-        </p>
-
-        <a href="${escapeHtml(video.video_url)}" style="display: inline-block; margin-top: 16px; padding: 8px 16px; background: ${accentColor}; color: white; text-decoration: none; font-size: 13px; font-weight: 500; border-radius: 6px;">
-          Watch Episode &rarr;
-        </a>
       </td>
     </tr>
     `;
@@ -136,7 +140,7 @@ export function renderNewsletterHtml(
     items: NewsletterItemWithVideo[]
 ): string {
     const isUrgent = issue.type === 'urgent';
-    const headerColor = isUrgent ? '#6366f1' : '#10b981';
+    const headerColor = isUrgent ? '#3b82f6' : '#38bdf8';
     const typeLabel = isUrgent ? 'Urgent Signals' : 'Evergreen Signals';
 
     const itemsHtml = items
@@ -162,23 +166,26 @@ export function renderNewsletterHtml(
   </noscript>
   <![endif]-->
 </head>
-<body style="margin: 0; padding: 0; background-color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f3f4f6;">
+<body style="margin: 0; padding: 0; background-color: #05070a; font-family: 'Sora', 'Space Grotesk', 'Helvetica Neue', Arial, sans-serif;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #05070a;">
     <tr>
-      <td align="center" style="padding: 40px 20px;">
-        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+      <td align="center" style="padding: 36px 18px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #0b1119; border-radius: 20px; border: 1px solid #1f2a44; box-shadow: 0 20px 40px rgba(2, 6, 23, 0.55);">
 
           <!-- Header -->
           <tr>
-            <td style="padding: 32px 40px; border-bottom: 1px solid #e5e7eb;">
+            <td style="padding: 28px 36px 22px; border-bottom: 1px solid #1f2a44;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 <tr>
                   <td>
-                    <p style="margin: 0; font-size: 24px; font-weight: 700; color: #111827; letter-spacing: -0.02em;">
+                    <p style="margin: 0; font-size: 12px; font-weight: 700; color: #94a3b8; letter-spacing: 0.28em; text-transform: uppercase;">
                       Executive Algorithm
                     </p>
-                    <p style="margin: 8px 0 0; font-size: 14px; color: ${headerColor}; font-weight: 600;">
-                      ${typeLabel} — ${formatDate(issue.issue_date)}
+                    <p style="margin: 12px 0 0; font-size: 22px; font-weight: 600; color: #f8fafc; letter-spacing: -0.02em;">
+                      ${typeLabel}
+                    </p>
+                    <p style="margin: 8px 0 0; font-size: 12px; color: ${headerColor}; font-weight: 600;">
+                      ${formatDate(issue.issue_date)}
                     </p>
                   </td>
                 </tr>
@@ -189,8 +196,8 @@ export function renderNewsletterHtml(
           <!-- Intro -->
           ${issue.preview_text ? `
           <tr>
-            <td style="padding: 24px 40px 0;">
-              <p style="margin: 0; font-size: 15px; color: #4b5563; line-height: 1.6;">
+            <td style="padding: 20px 36px 0;">
+              <p style="margin: 0; font-size: 14px; color: #cbd5f5; line-height: 1.7;">
                 ${escapeHtml(issue.preview_text)}
               </p>
             </td>
@@ -199,11 +206,11 @@ export function renderNewsletterHtml(
 
           <!-- Items -->
           <tr>
-            <td style="padding: 0 40px;">
+            <td style="padding: 12px 36px 6px;">
               <table width="100%" cellpadding="0" cellspacing="0" border="0">
                 ${itemsHtml || `
                 <tr>
-                  <td style="padding: 40px 0; text-align: center; color: #9ca3af;">
+                  <td style="padding: 40px 0; text-align: center; color: #94a3b8;">
                     No items in this issue yet.
                   </td>
                 </tr>
@@ -214,13 +221,13 @@ export function renderNewsletterHtml(
 
           <!-- Footer -->
           <tr>
-            <td style="padding: 32px 40px; background-color: #f9fafb; border-radius: 0 0 12px 12px;">
-              <p style="margin: 0 0 12px; font-size: 12px; color: #6b7280; line-height: 1.5;">
+            <td style="padding: 26px 36px; background-color: #0b1119; border-radius: 0 0 20px 20px; border-top: 1px solid #1f2a44;">
+              <p style="margin: 0 0 12px; font-size: 12px; color: #94a3b8; line-height: 1.6;">
                 Reply if something here feels off or missing.
               </p>
-              <p style="margin: 0; font-size: 11px; color: #9ca3af;">
-                <a href="*|UNSUB|*" style="color: #9ca3af;">Unsubscribe</a> ·
-                <a href="*|UPDATE_PROFILE|*" style="color: #9ca3af;">Update preferences</a>
+              <p style="margin: 0; font-size: 11px; color: #64748b;">
+                <a href="*|UNSUB|*" style="color: #64748b;">Unsubscribe</a> ·
+                <a href="*|UPDATE_PROFILE|*" style="color: #64748b;">Update preferences</a>
               </p>
             </td>
           </tr>

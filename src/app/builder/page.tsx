@@ -5,22 +5,19 @@ import { NewsletterBuilder } from '@/components/newsletter-builder';
 export default async function BuilderPage() {
     await requireUser();
 
-    const issues = await getOrCreateDraftIssues();
+    const { issues, drafts } = await getOrCreateDraftIssues();
     const [items, favorites] = await Promise.all([
-        getNewsletterItems([issues.urgent.id, issues.evergreen.id]),
+        getNewsletterItems(drafts.map((issue) => issue.id)),
         getFavoritedVideos(),
     ]);
-
-    const urgentItems = items.filter((item) => item.issue_id === issues.urgent.id);
-    const evergreenItems = items.filter((item) => item.issue_id === issues.evergreen.id);
 
     return (
         <div className="min-h-screen">
             <main className="px-6 py-8 lg:px-10">
                 <NewsletterBuilder
                     issues={issues}
-                    urgentItems={urgentItems}
-                    evergreenItems={evergreenItems}
+                    draftIssues={drafts}
+                    allItems={items}
                     favorites={favorites}
                 />
             </main>

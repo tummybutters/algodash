@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useTransition } from 'react';
+import { useEffect, useMemo, useState, useTransition } from 'react';
 import { ArrowRight } from 'lucide-react';
 import type {
     NewsletterIssue,
@@ -22,11 +22,12 @@ import { insertAt, reorderList } from '@/lib/newsletters/ordering';
 import { DraftOutputPanel } from './draft-output-panel';
 import { FavoritesPanel } from './favorites-panel';
 import { IssuePanel } from './issue-panel';
+import { IssueCalendar } from './issue-calendar';
 
 type NewsletterBuilderProps = {
     issues: Record<NewsletterType, NewsletterIssue>;
-    urgentItems: NewsletterItemWithVideo[];
-    evergreenItems: NewsletterItemWithVideo[];
+    draftIssues: NewsletterIssue[];
+    allItems: NewsletterItemWithVideo[];
     favorites: VideoListItem[];
 };
 
@@ -36,9 +37,26 @@ type DragPayload = {
     videoId: string;
 };
 
-export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorites }: NewsletterBuilderProps) {
-    const [urgentList, setUrgentList] = useState(() => [...urgentItems].sort((a, b) => a.position - b.position));
-    const [evergreenList, setEvergreenList] = useState(() => [...evergreenItems].sort((a, b) => a.position - b.position));
+export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: NewsletterBuilderProps) {
+    const [drafts, setDrafts] = useState(() => [...draftIssues]);
+    const [activeIssueIds, setActiveIssueIds] = useState({
+        urgent: issues.urgent.id,
+        evergreen: issues.evergreen.id,
+    });
+    const itemsByIssueId = useMemo(() => {
+        const map = new Map<string, NewsletterItemWithVideo[]>();
+        allItems.forEach((item) => {
+            const list = map.get(item.issue_id) || [];
+            list.push(item);
+            map.set(item.issue_id, list);
+        });
+        map.forEach((list, key) => {
+            map.set(key, [...list].sort((a, b) => a.position - b.position));
+        });
+        return map;
+    }, [allItems]);
+    const [urgentList, setUrgentList] = useState(() => itemsByIssueId.get(issues.urgent.id) || []);
+    const [evergreenList, setEvergreenList] = useState(() => itemsByIssueId.get(issues.evergreen.id) || []);
     const [issueDates, setIssueDates] = useState({
         urgent: issues.urgent.issue_date,
         evergreen: issues.evergreen.issue_date,
@@ -58,6 +76,17 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
     const [published, setPublished] = useState<NewsletterType | null>(null);
     const [publishError, setPublishError] = useState<string | null>(null);
 
+    const issuesById = useMemo(() => {
+        return new Map(drafts.map((issue) => [issue.id, issue]));
+    }, [drafts]);
+
+    const activeIssues = useMemo(() => {
+        return {
+            urgent: issuesById.get(activeIssueIds.urgent) || issues.urgent,
+            evergreen: issuesById.get(activeIssueIds.evergreen) || issues.evergreen,
+        };
+    }, [activeIssueIds, issuesById, issues]);
+
     const availableFavorites = useMemo(() => {
         const assigned = new Set([...urgentList, ...evergreenList].map((item) => item.video_id));
         return favorites.filter((video) => !assigned.has(video.id));
@@ -71,6 +100,35 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
         () => buildEvergreenDraft(evergreenList, issueDates.evergreen),
         [evergreenList, issueDates.evergreen]
     );
+
+    useEffect(() => {
+        const urgentIssue = issuesById.get(activeIssueIds.urgent);
+        const evergreenIssue = issuesById.get(activeIssueIds.evergreen);
+
+        if (urgentIssue) {
+            setUrgentList(itemsByIssueId.get(urgentIssue.id) || []);
+            setIssueDates((prev) => ({ ...prev, urgent: urgentIssue.issue_date }));
+            setIssueMetadata((prev) => ({
+                ...prev,
+                urgent: {
+                    subject: urgentIssue.subject || '',
+                    preview_text: urgentIssue.preview_text || '',
+                },
+            }));
+        }
+
+        if (evergreenIssue) {
+            setEvergreenList(itemsByIssueId.get(evergreenIssue.id) || []);
+            setIssueDates((prev) => ({ ...prev, evergreen: evergreenIssue.issue_date }));
+            setIssueMetadata((prev) => ({
+                ...prev,
+                evergreen: {
+                    subject: evergreenIssue.subject || '',
+                    preview_text: evergreenIssue.preview_text || '',
+                },
+            }));
+        }
+    }, [activeIssueIds, itemsByIssueId, issuesById]);
 
     const persistOrder = (items: NewsletterItemWithVideo[]) => {
         startTransition(() => {
@@ -102,7 +160,7 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
         const payload = parsePayload(event);
         if (!payload) return;
 
-        const targetIssue = issues[target];
+        const targetIssue = activeIssues[target];
         const targetList = target === 'urgent' ? urgentList : evergreenList;
         const setTargetList = target === 'urgent' ? setUrgentList : setEvergreenList;
         const sourceList = payload.source === 'urgent' ? urgentList : payload.source === 'evergreen' ? evergreenList : null;
@@ -178,7 +236,7 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
     };
 
     const handleQuickAdd = async (videoId: string, target: NewsletterType) => {
-        const targetIssue = issues[target];
+        const targetIssue = activeIssues[target];
         const list = target === 'urgent' ? urgentList : evergreenList;
         const setList = target === 'urgent' ? setUrgentList : setEvergreenList;
         const video = favorites.find((item) => item.id === videoId);
@@ -214,9 +272,17 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
         setTimeout(() => setCopied(null), 1200);
     };
 
+    const updateDraft = (issueId: string, updates: Partial<NewsletterIssue>) => {
+        setDrafts((prev) =>
+            prev.map((issue) => (issue.id === issueId ? { ...issue, ...updates } : issue))
+        );
+    };
+
     const updateIssueDate = (type: NewsletterType, value: string) => {
+        const issueId = activeIssues[type].id;
         setIssueDates((prev) => ({ ...prev, [type]: value }));
-        startTransition(() => updateNewsletterIssueDate(issues[type].id, value));
+        updateDraft(issueId, { issue_date: value });
+        startTransition(() => updateNewsletterIssueDate(issueId, value));
     };
 
     const updateIssueMetadata = (type: NewsletterType, field: 'subject' | 'preview_text', value: string) => {
@@ -224,7 +290,9 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
             ...prev,
             [type]: { ...prev[type], [field]: value },
         }));
-        startTransition(() => updateNewsletterIssue(issues[type].id, { [field]: value }));
+        const issueId = activeIssues[type].id;
+        updateDraft(issueId, { [field]: value });
+        startTransition(() => updateNewsletterIssue(issueId, { [field]: value }));
     };
 
     const handlePublish = async (type: NewsletterType) => {
@@ -233,7 +301,7 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
 
         startTransition(async () => {
             try {
-                await publishNewsletter(issues[type].id);
+                await publishNewsletter(activeIssues[type].id);
                 setPublished(type);
                 setTimeout(() => setPublished(null), 3000);
             } catch (err) {
@@ -244,6 +312,17 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
 
     return (
         <div className="space-y-8">
+            <IssueCalendar
+                issueDates={issueDates}
+                onAssignDate={updateIssueDate}
+                onOpenIssue={(type) => {
+                    document.getElementById(`issue-panel-${type}`)?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start',
+                    });
+                }}
+            />
+
             <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="space-y-1">
                     <h1 className="text-2xl font-semibold text-card-foreground">Newsletter Builder</h1>

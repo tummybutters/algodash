@@ -7,7 +7,10 @@ function todayDateString() {
     return new Date().toISOString().slice(0, 10);
 }
 
-export async function getOrCreateDraftIssues(): Promise<Record<NewsletterType, NewsletterIssue>> {
+export async function getOrCreateDraftIssues(): Promise<{
+    issues: Record<NewsletterType, NewsletterIssue>;
+    drafts: NewsletterIssue[];
+}> {
     const supabase = createServiceClient();
 
     const { data: existing, error } = await supabase
@@ -29,6 +32,7 @@ export async function getOrCreateDraftIssues(): Promise<Record<NewsletterType, N
     });
 
     const missingTypes = ISSUE_TYPES.filter((type) => !issuesByType.has(type));
+    const drafts = [...(existing || [])] as NewsletterIssue[];
     if (missingTypes.length > 0) {
         const payload = missingTypes.map((type) => ({
             type,
@@ -47,12 +51,16 @@ export async function getOrCreateDraftIssues(): Promise<Record<NewsletterType, N
 
         (created || []).forEach((issue) => {
             issuesByType.set(issue.type, issue as NewsletterIssue);
+            drafts.push(issue as NewsletterIssue);
         });
     }
 
     return {
-        urgent: issuesByType.get('urgent')!,
-        evergreen: issuesByType.get('evergreen')!,
+        issues: {
+            urgent: issuesByType.get('urgent')!,
+            evergreen: issuesByType.get('evergreen')!,
+        },
+        drafts,
     };
 }
 

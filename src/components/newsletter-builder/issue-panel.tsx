@@ -45,6 +45,7 @@ export function IssuePanel({
             className="gpt-panel p-5 space-y-5"
             onDragOver={(event) => event.preventDefault()}
             onDrop={onDropEnd}
+            id={`issue-panel-${type}`}
         >
             <div className="space-y-4">
                 <div>
