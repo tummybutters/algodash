@@ -46,62 +46,58 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
             <div className="flex justify-end">
                 <button
                     onClick={() => setShowAddForm(!showAddForm)}
-                    className="neo-button inline-flex items-center gap-2 px-4 py-2"
+                    className="gpt-button"
                 >
-                    <Plus size={18} />
+                    <Plus size={18} strokeWidth={1.5} />
                     Add Channel
                 </button>
             </div>
 
             {/* Add form */}
             {showAddForm && (
-                <div className="neo-panel p-4 space-y-4">
-                    <h3 className="font-display text-lg text-card-foreground">Add New Channel</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="gpt-panel p-6 space-y-5 fade-in">
+                    <h3 className="text-lg font-semibold text-card-foreground">Add New Channel</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
-                            <label className="block text-sm text-muted-foreground mb-1 ml-2">
+                            <label className="gpt-label-muted">
                                 YouTube Channel ID
                             </label>
-                            <div className="neo-input-wrapper w-full">
-                                <input
-                                    type="text"
-                                    placeholder="UCxxxxxxxxxxxxxx"
-                                    value={newChannelId}
-                                    onChange={(e) => setNewChannelId(e.target.value)}
-                                    className="neo-input-field"
-                                />
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-1 ml-2">
+                            <input
+                                type="text"
+                                placeholder="UCxxxxxxxxxxxxxx"
+                                value={newChannelId}
+                                onChange={(e) => setNewChannelId(e.target.value)}
+                                className="gpt-input w-full mt-2"
+                            />
+                            <p className="text-xs text-muted-foreground mt-2">
                                 Find this in the channel URL or page source
                             </p>
                         </div>
                         <div>
-                            <label className="block text-sm text-muted-foreground mb-1 ml-2">
+                            <label className="gpt-label-muted">
                                 Display Name
                             </label>
-                            <div className="neo-input-wrapper w-full">
-                                <input
-                                    type="text"
-                                    placeholder="Channel Name"
-                                    value={newChannelName}
-                                    onChange={(e) => setNewChannelName(e.target.value)}
-                                    className="neo-input-field"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                placeholder="Channel Name"
+                                value={newChannelName}
+                                onChange={(e) => setNewChannelName(e.target.value)}
+                                className="gpt-input w-full mt-2"
+                            />
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-3">
                         <button
                             onClick={handleAdd}
                             disabled={isPending || !newChannelId.trim() || !newChannelName.trim()}
-                            className="neo-button inline-flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="gpt-button disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isPending && <Loader2 size={16} className="animate-spin" />}
-                            Add
+                            Add Channel
                         </button>
                         <button
                             onClick={() => setShowAddForm(false)}
-                            className="neo-button-ghost px-4 py-2"
+                            className="gpt-button-ghost"
                         >
                             Cancel
                         </button>
@@ -110,83 +106,73 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
             )}
 
             {/* Channel list */}
-            <div className="neo-panel overflow-hidden">
-                <table className="w-full">
+            <div className="gpt-panel overflow-hidden">
+                <table className="gpt-table">
                     <thead>
-                        <tr className="border-b border-border">
-                            <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                                Channel
-                            </th>
-                            <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">
-                                YouTube ID
-                            </th>
-                            <th className="text-center px-4 py-3 text-sm font-medium text-muted-foreground">
-                                Status
-                            </th>
-                            <th className="text-center px-4 py-3 text-sm font-medium text-muted-foreground">
-                                Last Synced
-                            </th>
-                            <th className="text-right px-4 py-3 text-sm font-medium text-muted-foreground">
-                                Actions
-                            </th>
+                        <tr>
+                            <th>Channel</th>
+                            <th>YouTube ID</th>
+                            <th className="text-center">Status</th>
+                            <th className="text-center">Last Synced</th>
+                            <th className="text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {channels.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                                <td colSpan={5} className="text-center py-12 text-muted-foreground">
                                     No channels added yet
                                 </td>
                             </tr>
                         ) : (
                             channels.map((channel) => (
-                                <tr key={channel.id} className="border-b border-border last:border-b-0">
-                                    <td className="px-4 py-3">
+                                <tr key={channel.id}>
+                                    <td>
                                         <span className="font-medium text-card-foreground">
                                             {channel.name}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3">
-                                        <code className="text-xs bg-muted px-2 py-0.5 rounded text-muted-foreground">
+                                    <td>
+                                        <code className="text-xs bg-secondary px-2.5 py-1 rounded-full text-muted-foreground">
                                             {channel.youtube_channel_id}
                                         </code>
                                     </td>
-                                    <td className="px-4 py-3 text-center">
+                                    <td className="text-center">
                                         <span
-                                            className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${channel.approved
-                                                ? 'bg-green-500/20 text-green-500'
-                                                : 'bg-red-500/20 text-red-500'
+                                            className={`gpt-chip text-xs ${channel.approved
+                                                ? 'process-success'
+                                                : 'process-failed'
                                                 }`}
                                         >
                                             {channel.approved ? 'Active' : 'Disabled'}
                                         </span>
                                     </td>
-                                    <td className="px-4 py-3 text-center text-sm text-muted-foreground">
+                                    <td className="text-center text-sm text-muted-foreground">
                                         {channel.last_synced_at
                                             ? new Date(channel.last_synced_at).toLocaleDateString()
                                             : 'Never'}
                                     </td>
-                                    <td className="px-4 py-3 text-right">
-                                        <div className="inline-flex items-center gap-2">
+                                    <td className="text-right">
+                                        <div className="inline-flex items-center gap-1">
                                             <button
                                                 onClick={() => handleToggle(channel.id, channel.approved)}
                                                 disabled={isPending}
-                                                className="p-2 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-card-foreground"
+                                                className="p-2 rounded-lg hover:bg-secondary transition-colors text-muted-foreground hover:text-card-foreground"
                                                 title={channel.approved ? 'Disable' : 'Enable'}
                                             >
                                                 {channel.approved ? (
-                                                    <ToggleRight size={20} className="text-green-500" />
+                                                    <ToggleRight size={20} strokeWidth={1.5} className="text-primary" />
                                                 ) : (
-                                                    <ToggleLeft size={20} />
+                                                    <ToggleLeft size={20} strokeWidth={1.5} />
                                                 )}
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(channel.id)}
                                                 disabled={isPending}
-                                                className="p-2 rounded hover:bg-red-500/20 transition-colors text-muted-foreground hover:text-red-500"
+                                                className="p-2 rounded-lg hover:bg-destructive/10 transition-colors text-muted-foreground hover:text-destructive"
                                                 title="Delete"
                                             >
-                                                <Trash2 size={18} />
+                                                <Trash2 size={18} strokeWidth={1.5} />
                                             </button>
                                         </div>
                                     </td>

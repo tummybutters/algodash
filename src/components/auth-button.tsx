@@ -38,7 +38,7 @@ export function AuthButton() {
 
     if (isLoading) {
         return (
-            <button className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm opacity-70">
+            <button className="gpt-button-ghost px-4 py-2 text-sm opacity-70">
                 Loading...
             </button>
         );
@@ -48,9 +48,9 @@ export function AuthButton() {
         return (
             <button
                 onClick={handleSignOut}
-                className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
+                className="gpt-button-ghost px-4 py-2 text-sm"
             >
-                <LogOut size={16} />
+                <LogOut size={16} strokeWidth={1.5} />
                 Sign out
             </button>
         );
@@ -59,9 +59,9 @@ export function AuthButton() {
     return (
         <Link
             href="/auth/signin"
-            className="neo-button inline-flex items-center gap-2 px-4 py-2 text-sm"
+            className="gpt-button px-4 py-2 text-sm"
         >
-            <LogIn size={16} />
+            <LogIn size={16} strokeWidth={1.5} />
             Sign in
         </Link>
     );

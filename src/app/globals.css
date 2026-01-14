@@ -1,29 +1,29 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark navy theme matching sidebar */
-  --background: #0c1222;
-  --foreground: #e2e8f0;
-  --card: #111827;
-  --card-foreground: #f1f5f9;
-  --primary: #6366f1;
-  --primary-hover: #818cf8;
+  /* ChatGPT-Style Dark Theme */
+  --background: #212121;
+  --background-secondary: #171717;
+  --foreground: #ececec;
+  --card: #2f2f2f;
+  --card-foreground: #ececec;
+  --primary: #10a37f;
+  --primary-hover: #1a7f64;
   --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #e2e8f0;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --border: rgba(255, 255, 255, 0.1);
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --accent: #6366f1;
+  --secondary: #424242;
+  --secondary-foreground: #ececec;
+  --muted: #2f2f2f;
+  --muted-foreground: #8e8e8e;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-subtle: rgba(255, 255, 255, 0.04);
+  --accent: #10a37f;
   --accent-foreground: #ffffff;
   --destructive: #ef4444;
   --radius: 0.75rem;
-  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 
 * {
@@ -41,16 +41,17 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: var(--font-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-/* Custom scrollbar */
+/* Custom scrollbar - ChatGPT style */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -58,15 +59,15 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: rgba(255, 255, 255, 0.25);
 }
 
-/* Custom utility classes */
+/* Utility classes */
 .bg-background {
   background-color: var(--background);
 }
@@ -123,126 +124,91 @@ body {
   border-color: var(--border);
 }
 
-.glass-header {
-  background: rgba(250, 249, 247, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+/* ============================================
+   CHATGPT-STYLE CARD
+   ============================================ */
+.gpt-card {
+  background: var(--card);
+  border-radius: 12px;
+  border: none;
+  transition: background-color 0.15s ease;
 }
 
-.font-display {
-  font-family: var(--font-display), Georgia, serif;
-  letter-spacing: -0.02em;
+.gpt-card:hover {
+  background: #3a3a3a;
 }
 
-/* Premium Card */
-.neo-card {
+/* ============================================
+   CHATGPT-STYLE PANEL
+   ============================================ */
+.gpt-panel {
   background: var(--card);
   border-radius: 16px;
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
 }
 
-.neo-card:hover {
-  box-shadow: var(--shadow-lg);
-  border-color: var(--border);
-}
-
-/* Premium Panel */
-.neo-panel {
-  background: var(--card);
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow-md);
-}
-
-/* Premium Input with Animated Border */
-.neo-input {
-  --input-timing: 0.3s;
-  --input-border-color: #6366f1;
-  position: relative;
+/* ============================================
+   CHATGPT-STYLE INPUT
+   ============================================ */
+.gpt-input {
   background: var(--secondary);
   border: none;
-  border-radius: 12px;
+  border-radius: 24px;
   padding: 12px 16px;
   font-size: 14px;
   color: var(--foreground);
-  transition: border-radius var(--input-timing) ease;
+  transition: background-color 0.15s ease;
 }
 
-.neo-input::placeholder {
+.gpt-input::placeholder {
   color: var(--muted-foreground);
 }
 
-.neo-input:focus {
+.gpt-input:focus {
   outline: none;
-  border-radius: 4px;
+  background: #4a4a4a;
 }
 
-/* Input wrapper for animated border effect */
-.neo-input-wrapper {
-  --input-timing: 0.3s;
-  --input-border-color: #6366f1;
+/* Input wrapper for search inputs with icons */
+.gpt-input-wrapper {
   position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: var(--secondary);
-  border-radius: 12px;
-  padding: 0 12px;
-  transition: border-radius var(--input-timing) ease;
+  border-radius: 24px;
+  padding: 0 16px;
+  transition: background-color 0.15s ease;
 }
 
-.neo-input-wrapper::before {
-  content: "";
-  position: absolute;
-  background: var(--input-border-color);
-  transform: scaleX(0);
-  transform-origin: center;
-  width: 100%;
-  height: 2px;
-  left: 0;
-  bottom: 0;
-  border-radius: 1px;
-  transition: transform var(--input-timing) ease;
+.gpt-input-wrapper:focus-within {
+  background: #4a4a4a;
 }
 
-.neo-input-wrapper:focus-within {
-  border-radius: 4px;
-}
-
-.neo-input-wrapper:focus-within::before {
-  transform: scaleX(1);
-}
-
-.neo-input-wrapper .neo-input-field {
+.gpt-input-wrapper .gpt-input-field {
   flex: 1;
   min-width: 0;
   background: transparent;
   border: none;
-  padding: 8px 0;
+  padding: 12px 0;
   font-size: 14px;
   color: var(--foreground);
 }
 
-.neo-input-wrapper .neo-input-field::placeholder {
+.gpt-input-wrapper .gpt-input-field::placeholder {
   color: var(--muted-foreground);
 }
 
-.neo-input-wrapper .neo-input-field:focus {
+.gpt-input-wrapper .gpt-input-field:focus {
   outline: none;
 }
 
-.neo-input-wrapper .neo-input-icon {
+.gpt-input-wrapper .gpt-input-icon {
   color: var(--muted-foreground);
-  transition: color 0.2s ease;
+  flex-shrink: 0;
 }
 
-.neo-input-wrapper:focus-within .neo-input-icon {
-  color: var(--input-border-color);
-}
-
-.neo-input-wrapper .neo-input-clear {
+.gpt-input-wrapper .gpt-input-clear {
   opacity: 0;
   visibility: hidden;
   background: none;
@@ -250,103 +216,114 @@ body {
   color: var(--muted-foreground);
   cursor: pointer;
   padding: 4px;
-  transition: opacity 0.2s ease, color 0.2s ease;
+  transition: opacity 0.15s ease, color 0.15s ease;
 }
 
-.neo-input-wrapper .neo-input-clear:hover {
+.gpt-input-wrapper .gpt-input-clear:hover {
   color: var(--foreground);
 }
 
-.neo-input-wrapper .neo-input-field:not(:placeholder-shown)~.neo-input-clear {
+.gpt-input-wrapper .gpt-input-field:not(:placeholder-shown)~.gpt-input-clear {
   opacity: 1;
   visibility: visible;
 }
 
-/* Premium Primary Button */
-.neo-button {
+/* ============================================
+   CHATGPT-STYLE PRIMARY BUTTON
+   ============================================ */
+.gpt-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
   background: var(--primary);
   color: var(--primary-foreground);
   font-weight: 500;
   font-size: 14px;
   border: none;
-  box-shadow: var(--shadow-xs);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 10px 20px;
+  transition: background-color 0.15s ease, opacity 0.15s ease;
   cursor: pointer;
 }
 
-.neo-button:hover {
+.gpt-button:hover {
   background: var(--primary-hover);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
 }
 
-.neo-button:active {
-  transform: translateY(0);
-  box-shadow: var(--shadow-xs);
+.gpt-button:active {
+  opacity: 0.9;
 }
 
-.neo-button:disabled {
+.gpt-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  transform: none;
 }
 
-/* Premium Ghost Button */
-.neo-button-ghost {
+/* ============================================
+   CHATGPT-STYLE GHOST/SECONDARY BUTTON
+   ============================================ */
+.gpt-button-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
   background: transparent;
   color: var(--foreground);
   font-weight: 500;
   font-size: 14px;
-  border: 1px solid var(--border);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  border: none;
+  padding: 10px 20px;
+  transition: background-color 0.15s ease;
   cursor: pointer;
 }
 
-.neo-button-ghost:hover {
-  background: var(--muted);
-  border-color: var(--border);
-}
-
-.neo-button-ghost:active {
+.gpt-button-ghost:hover {
   background: var(--secondary);
 }
 
-/* Premium Chip/Tag - Compact */
-.neo-chip {
+.gpt-button-ghost:active {
+  background: #4a4a4a;
+}
+
+/* ============================================
+   CHATGPT-STYLE CHIP/BADGE
+   ============================================ */
+.gpt-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border-subtle);
-  font-size: 11px;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 13px;
   font-weight: 500;
   color: var(--muted-foreground);
-  background: var(--muted);
-  transition: all 0.15s ease;
+  background: var(--secondary);
+  transition: background-color 0.15s ease;
   cursor: pointer;
 }
 
-.neo-chip:hover {
-  background: var(--secondary);
-  border-color: var(--border);
+.gpt-chip:hover {
+  background: #4a4a4a;
 }
 
-/* Premium Toggle Switch */
-.neo-switch {
+.gpt-chip-active {
+  background: var(--primary);
+  color: var(--primary-foreground);
+}
+
+.gpt-chip-active:hover {
+  background: var(--primary-hover);
+}
+
+/* ============================================
+   CHATGPT-STYLE TOGGLE SWITCH
+   ============================================ */
+.gpt-switch {
   --switch-width: 44px;
   --switch-height: 24px;
-  --switch-thumb: 20px;
+  --switch-thumb: 18px;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -354,50 +331,56 @@ body {
   height: var(--switch-height);
 }
 
-.neo-toggle {
+.gpt-toggle {
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.neo-slider {
+.gpt-slider {
   position: absolute;
   cursor: pointer;
   inset: 0;
-  background-color: #374151;
-  border-radius: 9999px;
+  background-color: #4a4a4a;
+  border-radius: var(--radius-full);
   border: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background-color 0.2s ease;
 }
 
-.neo-slider:before {
+.gpt-slider:before {
   position: absolute;
   content: "";
   height: var(--switch-thumb);
   width: var(--switch-thumb);
-  left: 2px;
-  bottom: 2px;
+  left: 3px;
+  bottom: 3px;
   background-color: white;
-  border-radius: 9999px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 50%;
+  transition: transform 0.2s ease;
 }
 
-.neo-toggle:checked+.neo-slider {
+.gpt-toggle:checked+.gpt-slider {
   background-color: var(--primary);
 }
 
-.neo-toggle:checked+.neo-slider:before {
+.gpt-toggle:checked+.gpt-slider:before {
   transform: translateX(20px);
 }
 
-.neo-toggle:focus+.neo-slider {
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(24, 24, 27, 0.08);
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
-/* Animations */
-@keyframes rise-in {
+@keyframes slide-up {
   from {
     opacity: 0;
     transform: translateY(8px);
@@ -409,43 +392,31 @@ body {
   }
 }
 
-.rise-in {
-  animation: rise-in 0.3s cubic-bezier(0.4, 0, 0.2, 1) both;
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
 .fade-in {
   animation: fade-in 0.2s ease both;
 }
 
+.slide-up {
+  animation: slide-up 0.2s ease both;
+}
+
 /* ============================================
-   SIDEBAR NAVIGATION
+   CHATGPT-STYLE SIDEBAR
    ============================================ */
 .sidebar {
   position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
-  width: 200px;
-  background: #0f172a;
-  color: #e2e8f0;
+  width: 260px;
+  background: var(--background-secondary);
+  color: var(--foreground);
   display: flex;
   flex-direction: column;
   z-index: 40;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
   overflow-y: auto;
 }
 
-/* Hide sidebar on small screens */
 @media (max-width: 768px) {
   .sidebar {
     display: none;
@@ -455,24 +426,31 @@ body {
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 16px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 12px;
+  padding: 16px;
 }
 
 .sidebar-logo {
-  font-size: 20px;
+  width: 28px;
+  height: 28px;
+  background: var(--primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: white;
 }
 
 .sidebar-title {
   font-size: 14px;
   font-weight: 600;
-  letter-spacing: -0.02em;
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 10px 6px;
+  padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -481,13 +459,13 @@ body {
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 13px;
-  color: #94a3b8;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  color: var(--muted-foreground);
   text-decoration: none;
-  transition: all 0.15s ease;
+  transition: background-color 0.15s ease, color 0.15s ease;
   cursor: pointer;
   background: transparent;
   border: none;
@@ -497,27 +475,27 @@ body {
 
 .sidebar-link:hover {
   background: rgba(255, 255, 255, 0.06);
-  color: #f1f5f9;
+  color: var(--foreground);
 }
 
 .sidebar-link-active {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--foreground);
 }
 
 .sidebar-footer {
-  padding: 10px 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px;
+  border-top: 1px solid var(--border);
+  margin-top: auto;
 }
 
 /* Main content offset for sidebar */
 .main-with-sidebar {
-  margin-left: 200px;
+  margin-left: 260px;
   min-height: 100vh;
-  width: calc(100% - 200px);
+  width: calc(100% - 260px);
 }
 
-/* Full width on mobile when sidebar hidden */
 @media (max-width: 768px) {
   .main-with-sidebar {
     margin-left: 0;
@@ -526,68 +504,212 @@ body {
 }
 
 /* ============================================
-   ANIMATED DELETE BUTTON
+   DELETE BUTTON
    ============================================ */
 .delete-btn {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #dc2626;
+  background: rgba(239, 68, 68, 0.9);
   border: none;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
   overflow: hidden;
-  transition: all 0.2s ease;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
 
 .delete-btn svg {
-  width: 12px;
-  height: 12px;
+  width: 14px;
+  height: 14px;
   stroke: white;
-  transition: transform 0.2s ease;
 }
 
 .delete-btn:hover {
   background: #ef4444;
-  transform: scale(1.1);
-}
-
-.delete-btn:active svg {
-  transform: scale(0.85);
+  transform: scale(1.05);
 }
 
 /* ============================================
-   STATUS TOGGLE BUTTONS ON CARDS
+   STATUS TOGGLE BUTTONS
    ============================================ */
 .status-toggles {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 
 .status-toggle {
-  padding: 2px 6px;
-  font-size: 9px;
-  font-weight: 600;
-  border-radius: 4px;
-  border: 1px solid var(--border);
-  background: var(--muted);
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: var(--radius-full);
+  border: none;
+  background: var(--secondary);
   color: var(--muted-foreground);
   cursor: pointer;
-  transition: all 0.15s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  transition: background-color 0.15s ease, color 0.15s ease;
 }
 
 .status-toggle:hover {
-  border-color: var(--primary);
+  background: #4a4a4a;
+  color: var(--foreground);
 }
 
 .status-toggle-active {
   background: var(--primary);
   color: var(--primary-foreground);
-  border-color: transparent;
 }
+
+.status-toggle-active:hover {
+  background: var(--primary-hover);
+}
+
+/* ============================================
+   STATUS BADGE COLORS
+   ============================================ */
+.status-new {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+}
+
+.status-favorited {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.status-archived {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+}
+
+/* ============================================
+   MODAL/DIALOG STYLES
+   ============================================ */
+.gpt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+}
+
+.gpt-modal {
+  background: var(--card);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.gpt-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gpt-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.gpt-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.gpt-modal-close:hover {
+  background: var(--secondary);
+  color: var(--foreground);
+}
+
+.gpt-modal-content {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* ============================================
+   TABLE STYLES
+   ============================================ */
+.gpt-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.gpt-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border-bottom: 1px solid var(--border);
+}
+
+.gpt-table td {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.gpt-table tr:last-child td {
+  border-bottom: none;
+}
+
+.gpt-table tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ============================================
+   FORM ELEMENTS
+   ============================================ */
+.gpt-label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground);
+  margin-bottom: 8px;
+}
+
+.gpt-label-muted {
+  display: block;
+  font-size: 13px;
+  color: var(--muted-foreground);
+  margin-bottom: 6px;
+}
+
+/* ============================================
+   PROCESS STATUS COLORS
+   ============================================ */
+.process-pending {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+
+.process-success {
+  background: rgba(16, 163, 127, 0.15);
+  color: #10a37f;
+}
+
+.process-failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.process-unavailable {
+  background: rgba(156, 163, 175, 0.15);
+  color: #9ca3af;
+}
+
+/* Legacy class aliases removed - all components updated to use gpt-* classes */

@@ -25,7 +25,7 @@ export function Sidebar() {
     return (
         <aside className="sidebar">
             <div className="sidebar-header">
-                <span className="sidebar-logo">EA</span>
+                <div className="sidebar-logo">EA</div>
                 <span className="sidebar-title">Executive Algorithm</span>
             </div>
 
@@ -38,7 +38,7 @@ export function Sidebar() {
                             href={item.href}
                             className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
                         >
-                            <item.icon size={18} />
+                            <item.icon size={18} strokeWidth={1.5} />
                             <span>{item.label}</span>
                         </Link>
                     );
@@ -47,7 +47,7 @@ export function Sidebar() {
 
             <div className="sidebar-footer">
                 <button onClick={handleSignOut} className="sidebar-link">
-                    <LogOut size={18} />
+                    <LogOut size={18} strokeWidth={1.5} />
                     <span>Sign out</span>
                 </button>
             </div>

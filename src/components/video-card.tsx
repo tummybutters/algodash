@@ -38,16 +38,16 @@ const STATUS_OPTIONS: { value: VideoStatus; label: string }[] = [
 ];
 
 const VIDEO_STATUS_STYLES: Record<VideoStatus, string> = {
-    new: 'bg-blue-100 text-blue-700',
-    favorited: 'bg-amber-100 text-amber-700',
-    archived: 'bg-rose-100 text-rose-700',
+    new: 'status-new',
+    favorited: 'status-favorited',
+    archived: 'status-archived',
 };
 
 const PROCESS_STATUS_CONFIG: Record<ProcessStatus, { label: string; icon: typeof AlertCircle; classes: string }> = {
-    pending: { label: 'Pending', icon: Clock, classes: 'bg-amber-100 text-amber-700' },
-    success: { label: 'Ready', icon: CheckCircle, classes: 'bg-emerald-100 text-emerald-700' },
-    failed: { label: 'Failed', icon: AlertCircle, classes: 'bg-rose-100 text-rose-700' },
-    unavailable: { label: 'Missing', icon: XCircle, classes: 'bg-stone-200 text-stone-600' },
+    pending: { label: 'Pending', icon: Clock, classes: 'process-pending' },
+    success: { label: 'Ready', icon: CheckCircle, classes: 'process-success' },
+    failed: { label: 'Failed', icon: AlertCircle, classes: 'process-failed' },
+    unavailable: { label: 'Missing', icon: XCircle, classes: 'process-unavailable' },
 };
 
 function ProcessPill({ status, label }: { status: ProcessStatus; label: string }) {
@@ -55,8 +55,8 @@ function ProcessPill({ status, label }: { status: ProcessStatus; label: string }
     const Icon = config.icon;
 
     return (
-        <span className={`neo-chip ${config.classes}`}>
-            <Icon size={12} />
+        <span className={`gpt-chip text-xs ${config.classes}`}>
+            <Icon size={12} strokeWidth={1.5} />
             {label}: {config.label}
         </span>
     );
@@ -154,12 +154,12 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
     return (
         <>
             <article
-                className="neo-card p-4 space-y-3 group rise-in cursor-pointer"
-                style={{ animationDelay: `${Math.min(index, 12) * 40}ms` }}
+                className="gpt-card p-4 space-y-3 group slide-up cursor-pointer"
+                style={{ animationDelay: `${Math.min(index, 12) * 30}ms` }}
                 onClick={handleOpen}
             >
                 {/* Thumbnail with delete button overlay */}
-                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-muted">
+                <div className="relative rounded-lg overflow-hidden aspect-[16/9] bg-[#1a1a1a]">
                     {video.thumbnail_url ? (
                         <Image
                             src={video.thumbnail_url}
@@ -173,7 +173,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                         </div>
                     )}
                     {/* Duration badge */}
-                    <span className="absolute bottom-2 left-2 bg-black/80 text-white text-[10px] font-medium px-1.5 py-0.5 rounded">
+                    <span className="absolute bottom-2 left-2 bg-black/80 text-white text-[11px] font-medium px-2 py-0.5 rounded-md">
                         {formatDuration(video.duration_seconds)}
                     </span>
                     {/* Delete button - top right */}
@@ -183,7 +183,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                         title="Delete"
                         disabled={isPending}
                     >
-                        <Trash2 size={12} />
+                        <Trash2 size={14} strokeWidth={1.5} />
                     </button>
                 </div>
 
@@ -192,27 +192,28 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                     {video.title}
                 </h3>
 
-                {/* Meta info - plain text, not chips */}
-                <div className="text-xs text-muted-foreground space-y-0.5">
+                {/* Meta info */}
+                <div className="text-xs text-muted-foreground space-y-1">
                     <p>{video.channel_name || 'Unknown channel'}</p>
                     <p>{formatDistanceToNow(new Date(video.published_at), { addSuffix: true })}</p>
                 </div>
 
-                {/* Compact status row */}
-                <div className="flex items-center gap-2 text-[10px]" onClick={(e) => e.stopPropagation()}>
-                    <span className={`px-1.5 py-0.5 rounded font-medium ${VIDEO_STATUS_STYLES[status]}`}>
+                {/* Status row */}
+                <div className="flex items-center gap-2 flex-wrap" onClick={(e) => e.stopPropagation()}>
+                    <span className={`gpt-chip text-xs ${VIDEO_STATUS_STYLES[status]}`}>
                         {status}
                     </span>
-                    <span className="text-muted-foreground">•</span>
-                    <span className={`${transcriptStatus === 'success' ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                        T:{transcriptStatus === 'success' ? '✓' : transcriptStatus === 'pending' ? '...' : '✗'}
-                    </span>
-                    <span className={`${analysisStatus === 'success' ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-                        S:{analysisStatus === 'success' ? '✓' : analysisStatus === 'pending' ? '...' : '✗'}
-                    </span>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <span className={transcriptStatus === 'success' ? 'text-primary' : ''}>
+                            T:{transcriptStatus === 'success' ? '✓' : transcriptStatus === 'pending' ? '...' : '✗'}
+                        </span>
+                        <span className={analysisStatus === 'success' ? 'text-primary' : ''}>
+                            S:{analysisStatus === 'success' ? '✓' : analysisStatus === 'pending' ? '...' : '✗'}
+                        </span>
+                    </div>
                 </div>
 
-                {/* Status toggles - compact row */}
+                {/* Status toggles */}
                 <div className="status-toggles" onClick={(e) => e.stopPropagation()}>
                     {STATUS_OPTIONS.map((option) => (
                         <button
@@ -221,35 +222,35 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                             className={`status-toggle ${status === option.value ? 'status-toggle-active' : ''}`}
                             disabled={isPending}
                         >
-                            {option.label.slice(0, 3)}
+                            {option.label}
                         </button>
                     ))}
                 </div>
             </article>
 
             {isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center">
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
                     <div
-                        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                        className="gpt-modal-backdrop"
                         onClick={() => setIsOpen(false)}
                     />
-                    <div className="relative w-[min(92vw,960px)] max-h-[88vh] overflow-hidden neo-panel">
-                        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-                            <div>
-                                <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Video review</p>
-                                <h2 className="font-display text-2xl text-card-foreground">{video.title}</h2>
+                    <div className="relative w-[min(92vw,900px)] max-h-[88vh] overflow-hidden gpt-modal">
+                        <div className="gpt-modal-header">
+                            <div className="space-y-1">
+                                <p className="text-xs text-muted-foreground">Video Review</p>
+                                <h2 className="gpt-modal-title line-clamp-1">{video.title}</h2>
                             </div>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-2 rounded-full text-muted-foreground hover:text-card-foreground transition-colors"
+                                className="gpt-modal-close"
                             >
-                                <X size={18} />
+                                <X size={18} strokeWidth={1.5} />
                             </button>
                         </div>
 
-                        <div className="grid lg:grid-cols-[120px,1fr] gap-4 px-8 py-6 overflow-y-auto max-h-[75vh]">
-                            <div className="space-y-4">
-                                <div className="relative rounded-xl overflow-hidden aspect-[16/10] bg-muted">
+                        <div className="gpt-modal-content grid lg:grid-cols-[160px,1fr] gap-6 max-h-[75vh] overflow-y-auto">
+                            <div className="space-y-5">
+                                <div className="relative rounded-lg overflow-hidden aspect-[16/10] bg-[#1a1a1a]">
                                     {video.thumbnail_url ? (
                                         <Image
                                             src={video.thumbnail_url}
@@ -262,57 +263,47 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                             No thumbnail
                                         </div>
                                     )}
-                                    <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded-full">
+                                    <span className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-0.5 rounded-md">
                                         {formatDuration(video.duration_seconds)}
                                     </span>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between gap-2">
-                                        <div>
-                                            <p className="text-sm text-muted-foreground">Channel</p>
-                                            <p className="font-medium text-card-foreground">{video.channel_name || 'Unknown channel'}</p>
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <p className="text-xs text-muted-foreground">Channel</p>
+                                            <p className="font-medium text-sm text-card-foreground truncate">{video.channel_name || 'Unknown'}</p>
                                         </div>
                                         <a
                                             href={video.video_url}
                                             target="_blank"
                                             rel="noopener noreferrer"
-                                            className="neo-button-ghost px-3 py-1 text-xs inline-flex items-center gap-1"
+                                            className="gpt-button-ghost px-3 py-2 text-xs shrink-0"
                                         >
+                                            <ExternalLink size={14} strokeWidth={1.5} />
                                             Open
-                                            <ExternalLink size={12} />
                                         </a>
                                     </div>
 
                                     <div className="flex flex-wrap gap-2">
-                                        <span className="neo-chip bg-muted text-muted-foreground">
+                                        <span className="gpt-chip text-xs">
                                             {formatDistanceToNow(new Date(video.published_at), { addSuffix: true })}
                                         </span>
-                                        <span className={`neo-chip ${VIDEO_STATUS_STYLES[status]}`}>
+                                        <span className={`gpt-chip text-xs ${VIDEO_STATUS_STYLES[status]}`}>
                                             {status}
                                         </span>
                                     </div>
 
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="text-xs text-muted-foreground">Status</p>
-                                            <span className={`inline-flex items-center gap-2 text-xs font-medium ${VIDEO_STATUS_STYLES[status]} px-2 py-0.5 rounded-full`}>
-                                                {status}
-                                            </span>
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">Duration {formatDuration(video.duration_seconds)}</div>
-                                    </div>
-
                                     <div className="space-y-2">
-                                        <p className="text-xs text-muted-foreground">Status</p>
+                                        <p className="text-xs text-muted-foreground">Update Status</p>
                                         <div className="flex flex-wrap gap-2">
                                             {STATUS_OPTIONS.map((option) => (
                                                 <button
                                                     key={option.value}
                                                     onClick={() => handleStatusChange(option.value)}
-                                                    className={`neo-chip ${status === option.value
-                                                        ? 'bg-primary text-white border-transparent'
-                                                        : 'bg-muted text-muted-foreground'}`}
+                                                    className={`gpt-chip text-xs ${status === option.value
+                                                        ? 'gpt-chip-active'
+                                                        : ''}`}
                                                     disabled={isPending}
                                                 >
                                                     {option.label}
@@ -323,21 +314,21 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
 
                                     <div className="space-y-2">
                                         <p className="text-xs text-muted-foreground">Actions</p>
-                                        <div className="flex flex-wrap gap-2">
+                                        <div className="flex flex-col gap-2">
                                             <button
                                                 onClick={handleRetryTranscript}
                                                 disabled={isPending}
-                                                className="neo-button px-4 py-2 text-xs inline-flex items-center gap-2 disabled:opacity-50"
+                                                className="gpt-button px-4 py-2.5 text-xs justify-start disabled:opacity-50"
                                             >
-                                                {isPending ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
+                                                {isPending ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} strokeWidth={1.5} />}
                                                 Fetch transcript
                                             </button>
                                             <button
                                                 onClick={handleRetrySummary}
                                                 disabled={isPending}
-                                                className="neo-button-ghost px-4 py-2 text-xs inline-flex items-center gap-2 disabled:opacity-50"
+                                                className="gpt-button-ghost px-4 py-2.5 text-xs justify-start disabled:opacity-50"
                                             >
-                                                <Sparkles size={14} />
+                                                <Sparkles size={14} strokeWidth={1.5} />
                                                 Generate summary
                                             </button>
                                         </div>
@@ -349,17 +340,13 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                 <div className="flex flex-wrap gap-2">
                                     <button
                                         onClick={() => setActiveTab('transcript')}
-                                        className={`neo-chip ${activeTab === 'transcript'
-                                            ? 'bg-primary text-white border-transparent'
-                                            : 'bg-muted text-muted-foreground'}`}
+                                        className={`gpt-chip ${activeTab === 'transcript' ? 'gpt-chip-active' : ''}`}
                                     >
                                         Transcript
                                     </button>
                                     <button
                                         onClick={() => setActiveTab('summary')}
-                                        className={`neo-chip ${activeTab === 'summary'
-                                            ? 'bg-primary text-white border-transparent'
-                                            : 'bg-muted text-muted-foreground'}`}
+                                        className={`gpt-chip ${activeTab === 'summary' ? 'gpt-chip-active' : ''}`}
                                     >
                                         Summary
                                     </button>
@@ -367,68 +354,68 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
 
                                 {isLoadingDetails ? (
                                     <div className="flex items-center justify-center h-64 text-muted-foreground">
-                                        <Loader2 size={24} className="animate-spin" />
+                                        <Loader2 size={24} className="animate-spin text-primary" />
                                     </div>
                                 ) : (
-                                    <div className="neo-panel p-4 max-h-[55vh] overflow-y-auto">
+                                    <div className="gpt-panel p-5 max-h-[55vh] overflow-y-auto">
                                         {activeTab === 'transcript' ? (
                                             transcriptStatus === 'failed' ? (
-                                                <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                                    <AlertCircle className="text-rose-500" size={32} />
-                                                    <p className="text-rose-600 text-sm text-center">
+                                                <div className="flex flex-col items-center justify-center py-10 gap-4">
+                                                    <AlertCircle className="text-destructive" size={32} strokeWidth={1.5} />
+                                                    <p className="text-destructive text-sm text-center">
                                                         {expandedContent?.transcript_error || 'Transcript fetch failed'}
                                                     </p>
                                                     <button
                                                         onClick={handleRetryTranscript}
                                                         disabled={isPending}
-                                                        className="neo-button px-4 py-2 text-xs inline-flex items-center gap-2 disabled:opacity-50"
+                                                        className="gpt-button px-4 py-2 text-xs disabled:opacity-50"
                                                     >
-                                                        <RefreshCw size={14} /> Retry
+                                                        <RefreshCw size={14} strokeWidth={1.5} /> Retry
                                                     </button>
                                                 </div>
                                             ) : transcriptStatus === 'unavailable' ? (
                                                 <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                                    <XCircle className="text-stone-500" size={32} />
+                                                    <XCircle className="text-muted-foreground" size={32} strokeWidth={1.5} />
                                                     <p className="text-muted-foreground text-sm">No transcript available for this video</p>
                                                 </div>
                                             ) : transcriptStatus === 'pending' ? (
-                                                <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                                    <Clock className="text-amber-500 animate-pulse" size={32} />
+                                                <div className="flex flex-col items-center justify-center py-10 gap-4">
+                                                    <Clock className="text-yellow-500" size={32} strokeWidth={1.5} />
                                                     <p className="text-muted-foreground text-sm">Transcript not fetched yet</p>
                                                     <button
                                                         onClick={handleRetryTranscript}
                                                         disabled={isPending}
-                                                        className="neo-button-ghost px-4 py-2 text-xs inline-flex items-center gap-2 disabled:opacity-50"
+                                                        className="gpt-button-ghost px-4 py-2 text-xs disabled:opacity-50"
                                                     >
-                                                        <RefreshCw size={14} /> Fetch now
+                                                        <RefreshCw size={14} strokeWidth={1.5} /> Fetch now
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <pre className="text-sm text-card-foreground whitespace-pre-wrap font-sans">
+                                                <pre className="text-sm text-card-foreground whitespace-pre-wrap font-sans leading-relaxed">
                                                     {expandedContent?.transcript_text || 'No transcript content'}
                                                 </pre>
                                             )
                                         ) : analysisStatus === 'failed' ? (
-                                            <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                                <AlertCircle className="text-rose-500" size={32} />
-                                                <p className="text-rose-600 text-sm text-center">
+                                            <div className="flex flex-col items-center justify-center py-10 gap-4">
+                                                <AlertCircle className="text-destructive" size={32} strokeWidth={1.5} />
+                                                <p className="text-destructive text-sm text-center">
                                                     {expandedContent?.analysis_error || 'Summary failed'}
                                                 </p>
                                                 <button
                                                     onClick={handleRetrySummary}
                                                     disabled={isPending}
-                                                    className="neo-button px-4 py-2 text-xs inline-flex items-center gap-2 disabled:opacity-50"
+                                                    className="gpt-button px-4 py-2 text-xs disabled:opacity-50"
                                                 >
-                                                    <RefreshCw size={14} /> Retry
+                                                    <RefreshCw size={14} strokeWidth={1.5} /> Retry
                                                 </button>
                                             </div>
                                         ) : analysisStatus === 'pending' ? (
                                             <div className="flex flex-col items-center justify-center py-10 gap-3">
-                                                <Clock className="text-amber-500 animate-pulse" size={32} />
+                                                <Clock className="text-yellow-500" size={32} strokeWidth={1.5} />
                                                 <p className="text-muted-foreground text-sm">Summary pending...</p>
                                             </div>
                                         ) : (
-                                            <div className="prose prose-sm max-w-none">
+                                            <div className="prose prose-sm prose-invert max-w-none">
                                                 {expandedContent?.analysis_text || 'No summary yet'}
                                             </div>
                                         )}

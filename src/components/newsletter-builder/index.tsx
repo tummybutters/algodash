@@ -243,20 +243,20 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
     };
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-8">
             <div className="flex flex-wrap items-start justify-between gap-6">
-                <div className="space-y-2">
-                    <h1 className="font-display text-3xl text-card-foreground">Newsletter Builder</h1>
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold text-card-foreground">Newsletter Builder</h1>
                     <p className="text-sm text-muted-foreground">
                         Drag favorites into the urgent or evergreen drafts, then copy the formatted output.
                     </p>
                 </div>
-                <span className="neo-chip bg-muted text-muted-foreground">
-                    Favorites available: {availableFavorites.length}
+                <span className="text-sm text-muted-foreground">
+                    {availableFavorites.length} favorites available
                 </span>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-[1.1fr,1fr,1fr]">
+            <div className="grid gap-5 xl:grid-cols-[1.1fr,1fr,1fr]">
                 <FavoritesPanel
                     items={availableFavorites}
                     isPending={isPending}
@@ -307,7 +307,7 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                 />
             </div>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-5 lg:grid-cols-2">
                 <DraftOutputPanel
                     title="Urgent Draft Output"
                     draft={urgentDraft}
@@ -331,9 +331,9 @@ export function NewsletterBuilder({ issues, urgentItems, evergreenItems, favorit
                 />
             </div>
 
-            <div className="neo-panel p-5 flex flex-wrap items-center justify-between gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-2">
-                    <ArrowRight size={14} />
+            <div className="gpt-panel p-5 flex flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
+                <div className="flex items-center gap-3">
+                    <ArrowRight size={16} strokeWidth={1.5} />
                     Drag from Favorites into the issue lists or tap quick add on mobile.
                 </div>
                 <div>Updates are saved automatically.</div>

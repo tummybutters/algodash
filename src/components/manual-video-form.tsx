@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, Link2, Plus } from 'lucide-react';
+import { AlertCircle, Link2, Plus, Loader2 } from 'lucide-react';
 import type { ChannelOption, VideoStatus } from '@/types/database';
 import { addManualVideo } from '@/lib/actions/videos';
 
@@ -19,7 +19,7 @@ function todayDateString() {
 
 export function ManualVideoForm({
     channels,
-    onAdded = () => {},
+    onAdded = () => { },
     defaultStatus = 'favorited',
 }: ManualVideoFormProps) {
     const router = useRouter();
@@ -61,26 +61,26 @@ export function ManualVideoForm({
     };
 
     return (
-        <div className="neo-panel p-5 space-y-4">
+        <div className="gpt-panel p-5 space-y-4">
             <div>
-                <p className="text-xs uppercase tracking-[0.25em] text-muted-foreground">Manual add</p>
-                <h2 className="font-display text-xl text-card-foreground">Add episode by URL</h2>
+                <h2 className="text-lg font-semibold text-card-foreground">Add episode by URL</h2>
+                <p className="text-sm text-muted-foreground">Manually add a video to your library.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-                <div className="neo-input-wrapper w-[280px]">
-                    <Link2 size={14} className="neo-input-icon" />
+                <div className="gpt-input-wrapper flex-1 min-w-[200px]">
+                    <Link2 size={16} strokeWidth={1.5} className="gpt-input-icon" />
                     <input
                         value={videoUrl}
                         onChange={(event) => setVideoUrl(event.target.value)}
-                        placeholder="YouTube URL or ID"
-                        className="neo-input-field text-sm"
+                        placeholder="YouTube URL or video ID"
+                        className="gpt-input-field"
                     />
                 </div>
                 <select
                     value={channelId}
                     onChange={(event) => setChannelId(event.target.value)}
-                    className="neo-input px-3 py-1.5 text-sm w-[160px]"
+                    className="gpt-input px-4 py-3 text-sm"
                 >
                     <option value="">Channel (optional)</option>
                     {channelOptions.map((channel) => (
@@ -93,27 +93,31 @@ export function ManualVideoForm({
                     type="date"
                     value={publishedAt}
                     onChange={(event) => setPublishedAt(event.target.value)}
-                    className="neo-input px-3 py-1.5 text-sm w-[130px]"
+                    className="gpt-input px-4 py-3 text-sm"
                 />
                 <input
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
                     placeholder="Title (optional)"
-                    className="neo-input px-3 py-1.5 text-sm w-[180px]"
+                    className="gpt-input px-4 py-3 text-sm min-w-[180px]"
                 />
                 <button
                     onClick={handleSubmit}
                     disabled={isPending || !canSubmit}
-                    className="neo-button inline-flex items-center gap-2 px-4 py-1.5 text-sm disabled:opacity-50"
+                    className="gpt-button disabled:opacity-50"
                 >
-                    <Plus size={14} />
+                    {isPending ? (
+                        <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                        <Plus size={16} strokeWidth={1.5} />
+                    )}
                     Add
                 </button>
             </div>
 
             {error && (
-                <div className="flex items-center gap-2 text-xs text-rose-600">
-                    <AlertCircle size={14} />
+                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-lg">
+                    <AlertCircle size={16} strokeWidth={1.5} />
                     {error}
                 </div>
             )}

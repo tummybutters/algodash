@@ -103,13 +103,13 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
     };
 
     return (
-        <div className="space-y-10">
+        <div className="space-y-8">
             <div className="flex flex-wrap items-start justify-between gap-6">
-                <div className="space-y-2">
-                    {title && <h1 className="font-display text-3xl text-card-foreground">{title}</h1>}
+                <div className="space-y-1">
+                    {title && <h1 className="text-2xl font-semibold text-card-foreground">{title}</h1>}
                     {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
                 </div>
-                <span className="neo-chip bg-muted text-muted-foreground">
+                <span className="text-sm text-muted-foreground">
                     Showing {videos.length} of {totalCount} videos
                 </span>
             </div>
@@ -120,7 +120,7 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
                 filters={filters}
             />
 
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {videos.map((video, index) => (
                     <VideoCard
                         key={video.id}
@@ -134,7 +134,7 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
             {/* Infinite scroll loader */}
             <div ref={loaderRef} className="flex items-center justify-center py-10">
                 {isLoading && (
-                    <Loader2 className="animate-spin text-primary" size={32} />
+                    <Loader2 className="animate-spin text-primary" size={28} strokeWidth={1.5} />
                 )}
                 {!isLoading && videos.length >= totalCount && videos.length > 0 && (
                     <span className="text-muted-foreground text-sm">No more videos</span>

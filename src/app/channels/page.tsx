@@ -1,8 +1,5 @@
 import { getChannels } from '@/lib/supabase/queries';
 import { ChannelManager } from '@/components/channel-manager';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
-import { AuthButton } from '@/components/auth-button';
 import { requireUser } from '@/lib/supabase/require-user';
 
 export default async function ChannelsPage() {
@@ -12,27 +9,15 @@ export default async function ChannelsPage() {
 
     return (
         <div className="min-h-screen">
-            {/* Header */}
-            <header className="sticky top-0 z-50 glass-header border-b border-border">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href="/"
-                            className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
-                        >
-                            <ArrowLeft size={18} />
-                            Back
-                        </Link>
-                        <h1 className="font-display text-2xl text-card-foreground">
-                            Manage Channels
-                        </h1>
-                    </div>
-                    <AuthButton />
+            <main className="px-6 py-8 lg:px-10 space-y-6">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold text-card-foreground">
+                        Manage Channels
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Add YouTube channels to track for new podcast episodes.
+                    </p>
                 </div>
-            </header>
-
-            {/* Main content */}
-            <main className="max-w-6xl mx-auto px-4 py-6">
                 <ChannelManager channels={channels || []} />
             </main>
         </div>

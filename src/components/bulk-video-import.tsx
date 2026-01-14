@@ -338,16 +338,16 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
 
     return (
         <div className="space-y-6">
-            <div className="neo-panel p-5 space-y-4">
+            <div className="gpt-panel p-6 space-y-5">
                 <div className="flex items-start justify-between gap-4">
                     <div>
-                        <h2 className="font-display text-2xl text-card-foreground">Bulk video import</h2>
+                        <h2 className="text-lg font-semibold text-card-foreground">Paste JSON payload</h2>
                         <p className="text-sm text-muted-foreground">
-                            Paste a JSON array (or an object with an <code>items</code> or <code>videos</code> array) and preview before upserting.
+                            Paste a JSON array (or an object with an <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">items</code> or <code className="bg-secondary px-1.5 py-0.5 rounded text-xs">videos</code> array) and preview before upserting.
                         </p>
                     </div>
-                    <div className="text-xs text-muted-foreground">
-                        Payload size: {rawInput.length > 0 ? `${Math.round(rawInput.length / 1024)}kb` : '0kb'}
+                    <div className="text-sm text-muted-foreground">
+                        {rawInput.length > 0 ? `${Math.round(rawInput.length / 1024)}kb` : '0kb'}
                     </div>
                 </div>
 
@@ -355,18 +355,18 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                     value={rawInput}
                     onChange={(event) => setRawInput(event.target.value)}
                     placeholder="Paste JSON payload here..."
-                    className="neo-input min-h-[220px]"
+                    className="gpt-input w-full min-h-[200px] font-mono text-sm"
                 />
 
                 <div className="flex flex-wrap items-end gap-3">
                     <div>
-                        <label className="block text-xs text-muted-foreground mb-1">
+                        <label className="gpt-label-muted">
                             Default channel
                         </label>
                         <select
                             value={defaultChannelId}
                             onChange={(event) => setDefaultChannelId(event.target.value)}
-                            className="neo-input px-3 py-1.5 text-sm w-[180px]"
+                            className="gpt-input px-4 py-3 text-sm mt-2"
                         >
                             <option value="">No default</option>
                             {channels.map((channel) => (
@@ -378,47 +378,47 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                     </div>
                     <button
                         onClick={handleParse}
-                        className="neo-button inline-flex items-center gap-2 px-4 py-1.5 text-sm"
+                        className="gpt-button"
                     >
-                        <Upload size={14} />
+                        <Upload size={16} strokeWidth={1.5} />
                         Preview
                     </button>
                     <button
                         onClick={handleClear}
-                        className="neo-button-ghost px-4 py-1.5 text-sm"
+                        className="gpt-button-ghost"
                     >
                         Clear
                     </button>
                 </div>
 
                 {parseError && (
-                    <div className="flex items-center gap-2 text-sm text-red-500">
-                        <AlertCircle size={16} />
+                    <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-lg">
+                        <AlertCircle size={16} strokeWidth={1.5} />
                         {parseError}
                     </div>
                 )}
             </div>
 
             {normalizedItems.length > 0 && (
-                <div className="neo-panel p-5 space-y-4">
-                    <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="gpt-panel p-6 space-y-5">
+                    <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="text-sm text-muted-foreground">
-                            Parsed {normalizedItems.length} items. {validItems.length} ready, {invalidItems.length} with issues.
+                            Parsed {normalizedItems.length} items. <span className="text-primary">{validItems.length} ready</span>, {invalidItems.length} with issues.
                         </div>
-                        <div className="flex items-center gap-2">
-                            <label className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+                        <div className="flex items-center gap-4">
+                            <label className="inline-flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
                                 <input
                                     type="checkbox"
                                     checked={showOnlyValid}
                                     onChange={(event) => setShowOnlyValid(event.target.checked)}
-                                    className="accent-primary"
+                                    className="accent-primary w-4 h-4"
                                 />
                                 Show only valid
                             </label>
                             <button
                                 onClick={handleUpsert}
                                 disabled={isPending || validItems.length === 0}
-                                className="neo-button inline-flex items-center gap-2 px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                                className="gpt-button disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isPending && <Loader2 size={16} className="animate-spin" />}
                                 Upsert {validItems.length}
@@ -427,16 +427,16 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                     </div>
 
                     {resultMessage && (
-                        <div className="text-sm text-muted-foreground">{resultMessage}</div>
+                        <div className="text-sm text-primary">{resultMessage}</div>
                     )}
 
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto">
                         {displayItems.map((item) => (
                             <div
                                 key={`${item.youtube_video_id ?? 'missing'}-${item.index}`}
-                                className="neo-card flex flex-col lg:flex-row gap-4 p-4"
+                                className="gpt-card flex flex-col lg:flex-row gap-4 p-4"
                             >
-                                <div className="relative w-full lg:w-40 h-24 rounded-lg overflow-hidden bg-muted">
+                                <div className="relative w-full lg:w-36 h-20 rounded-lg overflow-hidden bg-[#1a1a1a] shrink-0">
                                     {item.thumbnail_url ? (
                                         <Image
                                             src={item.thumbnail_url}
@@ -452,36 +452,36 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                                 </div>
 
                                 <div className="flex-1 min-w-0 space-y-2">
-                                    <div className="flex items-start justify-between gap-2">
-                                        <div>
-                                            <h3 className="font-medium text-card-foreground line-clamp-2">
+                                    <div className="flex items-start justify-between gap-3">
+                                        <div className="min-w-0">
+                                            <h3 className="font-medium text-card-foreground line-clamp-1">
                                                 {item.title || 'Untitled video'}
                                             </h3>
                                             <p className="text-sm text-muted-foreground">
                                                 {item.channel_name || item.channel_youtube_id || 'Unknown channel'}
                                                 {item.channel_notice && (
-                                                    <span className="ml-2 text-xs text-muted-foreground">
-                                                        {item.channel_notice}
+                                                    <span className="ml-2 text-xs text-primary">
+                                                        ({item.channel_notice})
                                                     </span>
                                                 )}
                                             </p>
                                         </div>
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                        <div className="flex items-center gap-2 text-xs shrink-0">
                                             {item.errors.length === 0 ? (
-                                                <span className="inline-flex items-center gap-1 text-green-500">
-                                                    <CheckCircle size={14} />
+                                                <span className="gpt-chip text-xs process-success">
+                                                    <CheckCircle size={12} strokeWidth={1.5} />
                                                     Ready
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-red-500">
-                                                    <AlertCircle size={14} />
+                                                <span className="gpt-chip text-xs process-failed">
+                                                    <AlertCircle size={12} strokeWidth={1.5} />
                                                     Issues
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                                         <span>{item.published_at ? new Date(item.published_at).toLocaleDateString() : 'No date'}</span>
                                         <span>{formatDuration(item.duration_seconds)}</span>
                                         {item.video_url && (
@@ -491,20 +491,14 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                                                 rel="noopener noreferrer"
                                                 className="text-primary hover:underline"
                                             >
-                                                Open
+                                                Open →
                                             </a>
                                         )}
                                     </div>
 
-                                    {item.description && (
-                                        <p className="text-sm text-muted-foreground line-clamp-2">
-                                            {item.description}
-                                        </p>
-                                    )}
-
                                     {item.errors.length > 0 && (
-                                        <div className="text-xs text-red-500">
-                                            {item.errors.join(' | ')}
+                                        <div className="text-sm text-destructive">
+                                            {item.errors.join(' · ')}
                                         </div>
                                     )}
                                 </div>

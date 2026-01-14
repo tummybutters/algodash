@@ -1,8 +1,5 @@
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { getChannels } from '@/lib/supabase/queries';
 import { BulkVideoImport } from '@/components/bulk-video-import';
-import { AuthButton } from '@/components/auth-button';
 import { requireUser } from '@/lib/supabase/require-user';
 
 export default async function ImportPage() {
@@ -12,25 +9,15 @@ export default async function ImportPage() {
 
     return (
         <div className="min-h-screen">
-            <header className="sticky top-0 z-50 glass-header border-b border-border">
-                <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="flex items-center gap-3">
-                        <Link
-                            href="/"
-                            className="neo-button-ghost inline-flex items-center gap-2 px-4 py-2 text-sm"
-                        >
-                            <ArrowLeft size={18} />
-                            Back
-                        </Link>
-                        <h1 className="font-display text-2xl text-card-foreground">
-                            Bulk Import
-                        </h1>
-                    </div>
-                    <AuthButton />
+            <main className="px-6 py-8 lg:px-10 space-y-6">
+                <div className="space-y-1">
+                    <h1 className="text-2xl font-semibold text-card-foreground">
+                        Bulk Import
+                    </h1>
+                    <p className="text-sm text-muted-foreground">
+                        Import multiple videos from a JSON payload.
+                    </p>
                 </div>
-            </header>
-
-            <main className="max-w-6xl mx-auto px-4 py-6">
                 <BulkVideoImport channels={channels || []} />
             </main>
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Clipboard } from 'lucide-react';
+import { Copy, Send, Check } from 'lucide-react';
 
 type DraftOutputPanelProps = {
     title: string;
@@ -23,31 +23,36 @@ export function DraftOutputPanel({
     isPending,
     publishError,
 }: DraftOutputPanelProps) {
+    const isCopied = copyLabel === 'Copied';
+    const isPublished = publishLabel === 'Published!';
+
     return (
-        <section className="neo-panel p-6 space-y-4">
+        <section className="gpt-panel p-6 space-y-4">
             <div className="flex items-center justify-between gap-4">
-                <h3 className="font-display text-xl text-card-foreground">{title}</h3>
+                <h3 className="text-lg font-semibold text-card-foreground">{title}</h3>
                 <div className="flex gap-2">
                     <button
                         onClick={onCopy}
-                        className="neo-button-ghost inline-flex items-center gap-2 px-3 py-1.5 text-xs"
+                        className={`gpt-button-ghost px-4 py-2 text-sm ${isCopied ? 'text-primary' : ''}`}
                     >
-                        <Clipboard size={14} />
+                        {isCopied ? <Check size={16} strokeWidth={1.5} /> : <Copy size={16} strokeWidth={1.5} />}
                         {copyLabel}
                     </button>
                     <button
                         onClick={onPublish}
                         disabled={isPending}
-                        className={`neo-button inline-flex items-center gap-2 px-3 py-1.5 text-xs ${publishLabel === 'Published!' ? 'bg-green-600' : ''}`}
+                        className={`gpt-button px-4 py-2 text-sm ${isPublished ? '!bg-primary' : ''}`}
                     >
-                        <ArrowRight size={14} />
+                        <Send size={16} strokeWidth={1.5} />
                         {publishLabel}
                     </button>
                 </div>
             </div>
-            {publishError && <p className="text-[10px] text-rose-500">{publishError}</p>}
+            {publishError && (
+                <p className="text-sm text-destructive">{publishError}</p>
+            )}
 
-            <pre className="neo-panel p-4 text-xs whitespace-pre-wrap max-h-[420px] overflow-y-auto">
+            <pre className="bg-[#1a1a1a] rounded-xl p-5 text-sm text-muted-foreground whitespace-pre-wrap max-h-[400px] overflow-y-auto leading-relaxed">
                 {draft}
             </pre>
         </section>

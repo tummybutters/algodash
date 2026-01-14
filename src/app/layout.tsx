@@ -1,22 +1,16 @@
 import type { Metadata } from 'next';
-import { Space_Grotesk, DM_Serif_Display } from 'next/font/google';
+import { Inter } from 'next/font/google';
 import './globals.css';
 import { Sidebar } from '@/components/sidebar';
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
     subsets: ['latin'],
     variable: '--font-sans',
     weight: ['400', '500', '600', '700'],
 });
 
-const dmSerif = DM_Serif_Display({
-    subsets: ['latin'],
-    variable: '--font-display',
-    weight: ['400'],
-});
-
 export const metadata: Metadata = {
-    title: 'YouTube Newsletter Dashboard',
+    title: 'Executive Algorithm',
     description: 'Capture, triage, and curate podcast content for your newsletter',
 };
 
@@ -27,7 +21,7 @@ export default function RootLayout({
 }) {
     return (
         <html lang="en">
-            <body className={`${spaceGrotesk.variable} ${dmSerif.variable} antialiased`}>
+            <body className={`${inter.variable} font-sans antialiased`}>
                 <Sidebar />
                 <div className="main-with-sidebar">
                     {children}
