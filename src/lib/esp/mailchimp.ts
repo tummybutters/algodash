@@ -1,6 +1,9 @@
 import mailchimp from '@mailchimp/mailchimp_marketing';
 import type { ESPProvider, ESPCampaign, ESPPayload } from './types';
 
+const DEFAULT_FROM_NAME = 'Executive Algorithm';
+const DEFAULT_REPLY_TO = 'hello@example.com';
+
 // Initialize Mailchimp client
 function getClient() {
     const apiKey = process.env.MAILCHIMP_API_KEY;
@@ -73,8 +76,8 @@ export const mailchimpProvider: ESPProvider = {
             settings: {
                 subject_line: payload.subject,
                 preview_text: payload.preview_text || '',
-                from_name: process.env.MAILCHIMP_FROM_NAME || 'Executive Algorithm',
-                reply_to: process.env.MAILCHIMP_REPLY_TO || 'hello@example.com',
+                from_name: DEFAULT_FROM_NAME,
+                reply_to: DEFAULT_REPLY_TO,
             },
         }) as { id: string; status: string; archive_url?: string };
 
