@@ -50,7 +50,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
     const isStandardSendDay = selectedDay ? STANDARD_SEND_DAYS.has(selectedDay.getDay()) : false;
 
     return (
-        <section className="gpt-panel p-6 grid gap-6 lg:grid-cols-[1.1fr,0.7fr] max-w-5xl w-full mx-auto">
+        <section className="gpt-panel p-6 grid gap-6 lg:grid-cols-[1.1fr,0.7fr] w-full">
             <div className="space-y-5">
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
@@ -89,7 +89,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                     ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-2">
+                <div className="grid grid-cols-7 gap-3">
                     {calendarDays.map((day) => {
                         const dateKey = toDateKey(day);
                         const inMonth = isSameMonth(day, viewDate);
@@ -98,10 +98,17 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                         const isEvergreen = issueDates.evergreen === dateKey;
                         const isStandard = STANDARD_SEND_DAYS.has(day.getDay());
 
-                        const base = 'rounded-2xl px-2.5 py-2.5 text-xs transition-colors';
+                        const base = 'w-10 h-10 rounded-xl text-xs transition-colors flex items-center justify-center mx-auto';
+                        const baseTone = inMonth ? 'bg-secondary text-card-foreground' : 'bg-transparent text-muted-foreground/50';
+                        const tone = isUrgent
+                            ? 'bg-[#1f2b46] text-card-foreground'
+                            : isEvergreen
+                                ? 'bg-[#1b2b34] text-card-foreground'
+                                : baseTone;
+
                         const classes = [
                             base,
-                            inMonth ? 'bg-secondary text-card-foreground' : 'bg-transparent text-muted-foreground/50',
+                            tone,
                             isSelected ? 'ring-2 ring-primary/70' : 'hover:bg-[#3d3d3d]',
                             isStandard ? 'border border-border' : 'border border-transparent',
                         ]
@@ -115,20 +122,20 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                                 className={classes}
                                 onClick={() => setSelectedDate(dateKey)}
                             >
-                                <div className="flex items-start justify-between">
-                                    <span className={isToday(day) ? 'text-primary font-semibold' : ''}>
-                                        {format(day, 'd')}
-                                    </span>
-                                    {(isUrgent || isEvergreen) && (
-                                        <span className="flex gap-1 text-[10px]">
-                                            {isUrgent && <span className="gpt-chip px-2 py-0.5 text-[10px]">U</span>}
-                                            {isEvergreen && <span className="gpt-chip px-2 py-0.5 text-[10px]">E</span>}
-                                        </span>
-                                    )}
-                                </div>
+                                <span className={isToday(day) ? 'text-primary font-semibold' : ''}>
+                                    {format(day, 'd')}
+                                </span>
                             </button>
                         );
                     })}
+                </div>
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                    <span className="gpt-chip px-2 py-0.5 text-[10px]">U</span>
+                    <span>Urgent</span>
+                    <span className="gpt-chip px-2 py-0.5 text-[10px]">E</span>
+                    <span>Evergreen</span>
+                    <span className="w-3 h-3 rounded border border-border inline-block" />
+                    <span>Standard send days</span>
                 </div>
             </div>
 
