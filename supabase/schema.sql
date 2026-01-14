@@ -30,6 +30,7 @@ CREATE TABLE channels (
 CREATE TABLE videos (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   youtube_video_id TEXT UNIQUE NOT NULL,
+  youtube_channel_id TEXT NOT NULL,
   channel_id UUID NOT NULL REFERENCES channels(id) ON DELETE CASCADE,
 
   -- Metadata (updated on re-sync)
@@ -91,6 +92,7 @@ CREATE TABLE sync_runs (
 -- ============================================
 CREATE INDEX idx_videos_published ON videos (published_at DESC);
 CREATE INDEX idx_videos_channel_published ON videos (channel_id, published_at DESC);
+CREATE INDEX idx_videos_youtube_channel ON videos (youtube_channel_id);
 CREATE INDEX idx_videos_status ON videos (status);
 
 -- Retry queue indexes (partial for efficiency)
@@ -125,12 +127,51 @@ CREATE TRIGGER trg_videos_updated_at
   BEFORE UPDATE ON videos FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- Denormalize channel_name on insert/update
+CREATE OR REPLACE FUNCTION ensure_video_channel() RETURNS TRIGGER AS $$
+DECLARE
+  resolved_id UUID;
+  resolved_youtube_id TEXT;
+BEGIN
+  IF NEW.channel_id IS NOT NULL THEN
+    SELECT youtube_channel_id INTO resolved_youtube_id
+    FROM channels
+    WHERE id = NEW.channel_id;
+
+    IF resolved_youtube_id IS NOT NULL THEN
+      NEW.youtube_channel_id := resolved_youtube_id;
+    END IF;
+  END IF;
+
+  IF NEW.channel_id IS NULL AND NEW.youtube_channel_id IS NOT NULL THEN
+    INSERT INTO channels (youtube_channel_id, name)
+    VALUES (
+      NEW.youtube_channel_id,
+      COALESCE(NULLIF(NEW.channel_name, ''), NEW.youtube_channel_id)
+    )
+    ON CONFLICT (youtube_channel_id) DO UPDATE
+    SET name = COALESCE(EXCLUDED.name, channels.name);
+
+    SELECT id INTO resolved_id
+    FROM channels
+    WHERE youtube_channel_id = NEW.youtube_channel_id;
+
+    NEW.channel_id := resolved_id;
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION sync_channel_name() RETURNS TRIGGER AS $$
 BEGIN
   NEW.channel_name := (SELECT name FROM channels WHERE id = NEW.channel_id);
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_videos_channel_ensure
+  BEFORE INSERT OR UPDATE ON videos
+  FOR EACH ROW EXECUTE FUNCTION ensure_video_channel();
 
 CREATE TRIGGER trg_videos_channel_name
   BEFORE INSERT OR UPDATE OF channel_id ON videos
@@ -145,6 +186,7 @@ CREATE VIEW videos_list AS
 SELECT 
   v.id,
   v.youtube_video_id,
+  v.youtube_channel_id,
   v.title,
   v.channel_name,
   v.channel_id,

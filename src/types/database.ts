@@ -20,6 +20,7 @@ export type ChannelOption = Pick<Channel, 'id' | 'name'>;
 export interface Video {
     id: string;
     youtube_video_id: string;
+    youtube_channel_id: string;
     channel_id: string;
     title: string;
     description: string | null;
@@ -51,6 +52,7 @@ export interface Video {
 export interface VideoListItem {
     id: string;
     youtube_video_id: string;
+    youtube_channel_id: string;
     title: string;
     channel_name: string | null;
     channel_id: string;

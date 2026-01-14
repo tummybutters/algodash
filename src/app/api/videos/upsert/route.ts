@@ -73,34 +73,7 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'No items provided' }, { status: 400 });
     }
 
-    const youtubeChannelIds = new Set<string>();
-    for (const item of items) {
-        const fromPayload =
-            getString(item.youtube_channel_id) ||
-            getString(item.channelId) ||
-            getString(item.snippet?.channelId);
-        if (fromPayload) youtubeChannelIds.add(fromPayload);
-    }
-
     const supabase = createServiceClient();
-    const channelMap = new Map<string, string>();
-    if (youtubeChannelIds.size > 0) {
-        const { data: channels, error } = await supabase
-            .from('channels')
-            .select('id, youtube_channel_id')
-            .in('youtube_channel_id', Array.from(youtubeChannelIds));
-
-        if (error) {
-            return NextResponse.json(
-                { error: `Failed to load channels: ${error.message}` },
-                { status: 500 }
-            );
-        }
-
-        for (const channel of channels || []) {
-            channelMap.set(channel.youtube_channel_id, channel.id);
-        }
-    }
 
     const prepared: Array<Record<string, unknown>> = [];
     const skipped: Array<{ id: string | null; reason: string }> = [];
@@ -116,9 +89,8 @@ export async function POST(request: Request) {
             getString(item.youtube_channel_id) ||
             getString(item.channelId) ||
             getString(item.snippet?.channelId);
-        const mappedChannelId = channelId || (youtubeChannelId ? channelMap.get(youtubeChannelId) : null);
 
-        if (!youtubeVideoId || !title || !publishedAt || !mappedChannelId) {
+        if (!youtubeVideoId || !title || !publishedAt || (!channelId && !youtubeChannelId)) {
             skipped.push({
                 id: youtubeVideoId,
                 reason: 'Missing required fields or unknown channel',
@@ -132,13 +104,14 @@ export async function POST(request: Request) {
 
         prepared.push({
             youtube_video_id: youtubeVideoId,
-            channel_id: mappedChannelId,
+            channel_id: channelId,
+            youtube_channel_id: youtubeChannelId,
             title,
             description: getString(item.description ?? item.snippet?.description),
             published_at: publishedAt,
             duration_seconds: durationSeconds ?? null,
             thumbnail_url: getString(item.thumbnail_url) ?? pickThumbnail(thumbnails),
-            channel_name: getString(item.channel_name ?? item.channelTitle),
+            channel_name: getString(item.channel_name ?? item.channelTitle ?? item.snippet?.channelTitle),
         });
     }
 
