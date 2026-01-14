@@ -50,9 +50,9 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
     const isStandardSendDay = selectedDay ? STANDARD_SEND_DAYS.has(selectedDay.getDay()) : false;
 
     return (
-        <section className="gpt-panel p-6 grid gap-6 lg:grid-cols-[1fr,0.9fr] w-full">
+        <section className="gpt-panel p-6 grid gap-6 lg:grid-cols-[360px,1fr] w-full">
             <div className="space-y-4 flex flex-col items-center">
-                <div className="flex items-center justify-between w-full max-w-[360px]">
+                <div className="flex items-center justify-between w-full max-w-[260px]">
                     <button
                         type="button"
                         className="gpt-button-ghost px-2 py-1.5"
@@ -62,9 +62,6 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                         <ChevronLeft size={16} strokeWidth={1.5} />
                     </button>
                     <div className="text-center">
-                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                            Newsletter Calendar
-                        </p>
                         <h2 className="text-base font-semibold text-card-foreground">
                             {format(viewDate, 'MMMM yyyy')}
                         </h2>
@@ -79,7 +76,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                     </button>
                 </div>
 
-                <div className="grid grid-cols-7 gap-1.5 text-[10px] uppercase tracking-[0.2em] text-muted-foreground w-full max-w-[360px]">
+                <div className="grid grid-cols-7 gap-1 text-[10px] uppercase tracking-[0.2em] text-muted-foreground w-full max-w-[260px]">
                     {DAY_LABELS.map((day) => (
                         <div key={day} className="text-center py-1">
                             {day}
@@ -87,7 +84,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                     ))}
                 </div>
 
-                <div className="grid grid-cols-7 gap-1.5 w-full max-w-[360px] place-items-center">
+                <div className="grid grid-cols-7 gap-1 w-full max-w-[260px] place-items-center">
                     {calendarDays.map((day) => {
                         const dateKey = toDateKey(day);
                         const inMonth = isSameMonth(day, viewDate);
@@ -96,7 +93,7 @@ export function IssueCalendar({ issueDates, onAssignDate, onOpenIssue }: IssueCa
                         const isEvergreen = issueDates.evergreen === dateKey;
                         const isStandard = STANDARD_SEND_DAYS.has(day.getDay());
 
-                        const base = 'relative w-8 h-8 rounded-xl text-xs transition-colors flex items-center justify-center';
+                        const base = 'relative w-7 h-7 rounded-lg text-xs transition-colors flex items-center justify-center';
                         const baseTone = inMonth ? 'bg-secondary text-card-foreground' : 'bg-transparent text-muted-foreground/50';
                         const tone = isUrgent
                             ? 'bg-[#1f2b46] text-card-foreground'
