@@ -16,18 +16,16 @@ export default async function LibraryPage() {
     const count = videosResult.count || 0;
 
     return (
-        <div className="min-h-screen">
-            <main className="px-6 py-8 lg:px-10 space-y-8">
-                <ManualVideoForm channels={channels} defaultStatus="favorited" />
-                <VideoFeed
-                    initialVideos={videos}
-                    initialCount={count}
-                    channels={channels}
-                    title="Favorites Library"
-                    subtitle="Save high-signal episodes here before placing them into urgent or evergreen issues."
-                    defaultFilters={{ statuses: ['favorited'] }}
-                />
-            </main>
+        <div className="space-y-8">
+            <ManualVideoForm channels={channels} defaultStatus="favorited" />
+            <VideoFeed
+                initialVideos={videos}
+                initialCount={count}
+                channels={channels}
+                title="Favorites Library"
+                subtitle="Save high-signal episodes here before placing them into urgent or evergreen issues."
+                defaultFilters={{ statuses: ['favorited'] }}
+            />
         </div>
     );
 }

@@ -24,7 +24,9 @@ export default function RootLayout({
             <body className={`${inter.variable} font-sans antialiased`}>
                 <Sidebar />
                 <div className="main-with-sidebar">
-                    {children}
+                    <main className="page-shell">
+                        {children}
+                    </main>
                 </div>
             </body>
         </html>

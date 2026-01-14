@@ -28,7 +28,7 @@ export default function SignInPage() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-6 bg-background">
+        <div className="flex min-h-[calc(100vh-(var(--page-padding-y)*2))] items-center justify-center bg-background">
             <div className="gpt-panel p-10 max-w-md w-full space-y-6">
                 <div className="text-center space-y-2">
                     <div className="w-12 h-12 bg-primary rounded-xl mx-auto flex items-center justify-center text-white font-semibold text-lg">

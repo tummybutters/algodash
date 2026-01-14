@@ -17,35 +17,33 @@ export default async function Home() {
     const count = videosResult.count || 0;
 
     return (
-        <div className="min-h-screen">
-            <main className="px-6 py-8 lg:px-10">
-                {videos.length === 0 && channels.length === 0 ? (
-                    <div className="gpt-panel flex flex-col items-center justify-center py-20 px-10 text-center">
-                        <h2 className="text-2xl font-semibold text-card-foreground mb-2">
-                            No videos yet
-                        </h2>
-                        <p className="text-muted-foreground mb-8 max-w-md">
-                            Add channels to start capturing podcast videos, or wait for the next n8n sync to run.
-                        </p>
-                        <Link
-                            href="/channels"
-                            className="gpt-button"
-                        >
-                            <Settings size={18} strokeWidth={1.5} />
-                            Add Channels
-                        </Link>
-                    </div>
-                ) : (
-                    <VideoFeed
-                        initialVideos={videos}
-                        initialCount={count}
-                        channels={channels}
-                        title="Inbox"
-                        subtitle="Triage new episodes and decide what moves into your favorites or archive."
-                        defaultFilters={{ statuses: ['new'] }}
-                    />
-                )}
-            </main>
+        <div>
+            {videos.length === 0 && channels.length === 0 ? (
+                <div className="gpt-panel flex flex-col items-center justify-center py-20 px-10 text-center">
+                    <h2 className="text-2xl font-semibold text-card-foreground mb-2">
+                        No videos yet
+                    </h2>
+                    <p className="text-muted-foreground mb-8 max-w-md">
+                        Add channels to start capturing podcast videos, or wait for the next n8n sync to run.
+                    </p>
+                    <Link
+                        href="/channels"
+                        className="gpt-button"
+                    >
+                        <Settings size={18} strokeWidth={1.5} />
+                        Add Channels
+                    </Link>
+                </div>
+            ) : (
+                <VideoFeed
+                    initialVideos={videos}
+                    initialCount={count}
+                    channels={channels}
+                    title="Inbox"
+                    subtitle="Triage new episodes and decide what moves into your favorites or archive."
+                    defaultFilters={{ statuses: ['new'] }}
+                />
+            )}
         </div>
     );
 }

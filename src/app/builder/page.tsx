@@ -12,15 +12,13 @@ export default async function BuilderPage() {
     ]);
 
     return (
-        <div className="min-h-screen">
-            <main className="px-10 py-8">
-                <NewsletterBuilder
-                    issues={issues}
-                    draftIssues={drafts}
-                    allItems={items}
-                    favorites={favorites}
-                />
-            </main>
+        <div>
+            <NewsletterBuilder
+                issues={issues}
+                draftIssues={drafts}
+                allItems={items}
+                favorites={favorites}
+            />
         </div>
     );
 }
