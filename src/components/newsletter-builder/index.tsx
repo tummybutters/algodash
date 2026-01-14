@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { format } from 'date-fns';
 import type {
     NewsletterIssue,
     NewsletterItemWithVideo,
@@ -37,6 +38,10 @@ type DragPayload = {
     videoId: string;
 };
 
+const STANDARD_SEND_DAYS = new Set([4, 6]);
+
+const fromDateKey = (dateKey: string) => new Date(`${dateKey}T00:00:00`);
+
 export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: NewsletterBuilderProps) {
     const [drafts, setDrafts] = useState(() => [...draftIssues]);
     const [activeIssueIds, setActiveIssueIds] = useState({
@@ -71,6 +76,7 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
             preview_text: issues.evergreen.preview_text || '',
         },
     });
+    const [selectedDate, setSelectedDate] = useState(() => issues.urgent.issue_date);
     const [isPending, startTransition] = useTransition();
     const [copied, setCopied] = useState<NewsletterType | null>(null);
     const [published, setPublished] = useState<NewsletterType | null>(null);
@@ -100,6 +106,13 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
         () => buildEvergreenDraft(evergreenList, issueDates.evergreen),
         [evergreenList, issueDates.evergreen]
     );
+    const selectedDateLabel = selectedDate ? format(fromDateKey(selectedDate), 'MMMM d, yyyy') : null;
+    const urgentSelected = selectedDate === issueDates.urgent;
+    const evergreenSelected = selectedDate === issueDates.evergreen;
+    const selectedDay = selectedDate ? fromDateKey(selectedDate) : null;
+    const isStandardSendDay = selectedDay ? STANDARD_SEND_DAYS.has(selectedDay.getDay()) : false;
+    const urgentDateLabel = issueDates.urgent ? format(fromDateKey(issueDates.urgent), 'MMM d') : '—';
+    const evergreenDateLabel = issueDates.evergreen ? format(fromDateKey(issueDates.evergreen), 'MMM d') : '—';
 
     useEffect(() => {
         const urgentIssue = issuesById.get(activeIssueIds.urgent);
@@ -115,6 +128,9 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
                     preview_text: urgentIssue.preview_text || '',
                 },
             }));
+            if (!selectedDate) {
+                setSelectedDate(urgentIssue.issue_date);
+            }
         }
 
         if (evergreenIssue) {
@@ -311,17 +327,118 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
     };
 
     return (
-        <div className="space-y-8">
-            <IssueCalendar
-                issueDates={issueDates}
-                onAssignDate={updateIssueDate}
-                onOpenIssue={(type) => {
-                    document.getElementById(`issue-panel-${type}`)?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start',
-                    });
-                }}
-            />
+        <div className="page-stack">
+            <div className="grid gap-6 lg:grid-cols-[320px,1fr] xl:grid-cols-[320px,1fr,1fr]">
+                <IssueCalendar
+                    issueDates={issueDates}
+                    selectedDate={selectedDate}
+                    onSelectDate={setSelectedDate}
+                />
+
+                <section className="gpt-panel p-6 panel-stack lg:col-span-2 xl:col-span-1">
+                    <div className="space-y-2">
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                            Selected Date
+                        </p>
+                        <p className="text-lg font-semibold text-card-foreground">
+                            {selectedDateLabel || 'Pick a day'}
+                        </p>
+                        {isStandardSendDay && (
+                            <span className="gpt-chip text-xs">Standard send day</span>
+                        )}
+                    </div>
+
+                    {!selectedDate && (
+                        <p className="text-sm text-muted-foreground">
+                            Choose a date on the calendar to plan a newsletter issue.
+                        </p>
+                    )}
+
+                    {selectedDate && (
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Urgent Issue</span>
+                                {urgentSelected ? (
+                                    <button
+                                        type="button"
+                                        className="gpt-button-ghost text-xs px-3 py-1.5"
+                                        onClick={() => {
+                                            document.getElementById('issue-panel-urgent')?.scrollIntoView({
+                                                behavior: 'smooth',
+                                                block: 'start',
+                                            });
+                                        }}
+                                    >
+                                        Open Draft
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="gpt-button text-xs px-3 py-1.5"
+                                        onClick={() => updateIssueDate('urgent', selectedDate)}
+                                    >
+                                        Assign Date
+                                    </button>
+                                )}
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-muted-foreground">Evergreen Issue</span>
+                                {evergreenSelected ? (
+                                    <button
+                                        type="button"
+                                        className="gpt-button-ghost text-xs px-3 py-1.5"
+                                        onClick={() => {
+                                            document.getElementById('issue-panel-evergreen')?.scrollIntoView({
+                                                behavior: 'smooth',
+                                                block: 'start',
+                                            });
+                                        }}
+                                    >
+                                        Open Draft
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        className="gpt-button text-xs px-3 py-1.5"
+                                        onClick={() => updateIssueDate('evergreen', selectedDate)}
+                                    >
+                                        Assign Date
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </section>
+
+                <section className="gpt-panel p-6 panel-stack">
+                    <div>
+                        <h3 className="text-lg font-semibold text-card-foreground">Draft Overview</h3>
+                        <p className="text-sm text-muted-foreground">Track issue volume at a glance.</p>
+                    </div>
+                    <div className="space-y-3 text-sm">
+                        <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Urgent items</span>
+                            <span className="font-semibold text-card-foreground">{urgentList.length}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Evergreen items</span>
+                            <span className="font-semibold text-card-foreground">{evergreenList.length}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Favorites available</span>
+                            <span className="font-semibold text-card-foreground">{availableFavorites.length}</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Urgent send</span>
+                        <span>{urgentDateLabel}</span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Evergreen send</span>
+                        <span>{evergreenDateLabel}</span>
+                    </div>
+                </section>
+            </div>
 
             <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="space-y-1">
@@ -330,12 +447,9 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
                         Drag favorites into the urgent or evergreen drafts, then copy the formatted output.
                     </p>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                    {availableFavorites.length} favorites available
-                </span>
             </div>
 
-            <div className="grid gap-5 xl:grid-cols-[1.1fr,1fr,1fr]">
+            <div className="grid gap-6 xl:grid-cols-[1.1fr,1fr,1fr]">
                 <FavoritesPanel
                     items={availableFavorites}
                     isPending={isPending}
@@ -386,7 +500,7 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
                 />
             </div>
 
-            <div className="grid gap-5 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
                 <DraftOutputPanel
                     title="Urgent Draft Output"
                     draft={urgentDraft}
@@ -410,7 +524,7 @@ export function NewsletterBuilder({ issues, draftIssues, allItems, favorites }: 
                 />
             </div>
 
-            <div className="gpt-panel p-5 flex flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
+            <div className="gpt-panel p-6 flex flex-wrap items-center justify-between gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-3">
                     <ArrowRight size={16} strokeWidth={1.5} />
                     Drag from Favorites into the issue lists or tap quick add on mobile.

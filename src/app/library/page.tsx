@@ -16,7 +16,7 @@ export default async function LibraryPage() {
     const count = videosResult.count || 0;
 
     return (
-        <div className="space-y-8">
+        <div className="page-stack">
             <ManualVideoForm channels={channels} defaultStatus="favorited" />
             <VideoFeed
                 initialVideos={videos}

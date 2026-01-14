@@ -337,8 +337,8 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
     };
 
     return (
-        <div className="space-y-6">
-            <div className="gpt-panel p-6 space-y-5">
+        <div className="section-stack">
+            <div className="gpt-panel p-6 section-stack content-rail-wide">
                 <div className="flex items-start justify-between gap-4">
                     <div>
                         <h2 className="text-lg font-semibold text-card-foreground">Paste JSON payload</h2>
@@ -366,7 +366,7 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
                         <select
                             value={defaultChannelId}
                             onChange={(event) => setDefaultChannelId(event.target.value)}
-                            className="gpt-input px-4 py-3 text-sm mt-2"
+                            className="gpt-input px-4 py-3 text-sm mt-2 field-md"
                         >
                             <option value="">No default</option>
                             {channels.map((channel) => (
@@ -400,7 +400,7 @@ export function BulkVideoImport({ channels }: BulkVideoImportProps) {
             </div>
 
             {normalizedItems.length > 0 && (
-                <div className="gpt-panel p-6 space-y-5">
+                <div className="gpt-panel p-6 section-stack content-rail-wide">
                     <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="text-sm text-muted-foreground">
                             Parsed {normalizedItems.length} items. <span className="text-primary">{validItems.length} ready</span>, {invalidItems.length} with issues.

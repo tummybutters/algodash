@@ -41,7 +41,7 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="section-stack">
             {/* Add button */}
             <div className="flex justify-end">
                 <button
@@ -55,9 +55,9 @@ export function ChannelManager({ channels }: ChannelManagerProps) {
 
             {/* Add form */}
             {showAddForm && (
-                <div className="gpt-panel p-6 space-y-5 fade-in">
+                <div className="gpt-panel p-6 section-stack content-rail fade-in">
                     <h3 className="text-lg font-semibold text-card-foreground">Add New Channel</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label className="gpt-label-muted">
                                 YouTube Channel ID

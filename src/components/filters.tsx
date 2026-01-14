@@ -72,9 +72,9 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
         filters.search;
 
     return (
-        <div className="gpt-panel p-5 space-y-5">
+        <div className="gpt-panel p-6 section-stack">
             <div className="flex flex-wrap items-center gap-3">
-                <div className="gpt-input-wrapper w-[300px]">
+                <div className="gpt-input-wrapper field-xl">
                     <Search className="gpt-input-icon" size={16} strokeWidth={1.5} />
                     <input
                         type="text"
@@ -127,7 +127,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
             </div>
 
             {isExpanded && (
-                <div className="pt-5 border-t border-border space-y-5 fade-in">
+                <div className="pt-6 border-t border-border section-stack fade-in">
                     {channels.length > 0 && (
                         <div>
                             <label className="gpt-label-muted mb-3 block">
@@ -157,7 +157,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                                 type="date"
                                 value={filters.dateFrom}
                                 onChange={(e) => updateFilters({ dateFrom: e.target.value })}
-                                className="gpt-input px-4 py-2 text-sm"
+                                className="gpt-input px-4 py-2 text-sm field-sm"
                             />
                         </div>
                         <div className="flex items-center gap-3">
@@ -169,7 +169,7 @@ export function Filters({ channels, onFilterChange, filters }: FiltersProps) {
                                 type="date"
                                 value={filters.dateTo}
                                 onChange={(e) => updateFilters({ dateTo: e.target.value })}
-                                className="gpt-input px-4 py-2 text-sm"
+                                className="gpt-input px-4 py-2 text-sm field-sm"
                             />
                         </div>
                     </div>

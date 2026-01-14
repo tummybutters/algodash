@@ -61,14 +61,14 @@ export function ManualVideoForm({
     };
 
     return (
-        <div className="gpt-panel p-5 space-y-4">
+        <div className="gpt-panel p-6 panel-stack content-rail">
             <div>
                 <h2 className="text-lg font-semibold text-card-foreground">Add episode by URL</h2>
                 <p className="text-sm text-muted-foreground">Manually add a video to your library.</p>
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
-                <div className="gpt-input-wrapper flex-1 min-w-[200px]">
+                <div className="gpt-input-wrapper field-flex">
                     <Link2 size={16} strokeWidth={1.5} className="gpt-input-icon" />
                     <input
                         value={videoUrl}
@@ -80,7 +80,7 @@ export function ManualVideoForm({
                 <select
                     value={channelId}
                     onChange={(event) => setChannelId(event.target.value)}
-                    className="gpt-input px-4 py-3 text-sm"
+                    className="gpt-input px-4 py-3 text-sm field-md"
                 >
                     <option value="">Channel (optional)</option>
                     {channelOptions.map((channel) => (
@@ -93,13 +93,13 @@ export function ManualVideoForm({
                     type="date"
                     value={publishedAt}
                     onChange={(event) => setPublishedAt(event.target.value)}
-                    className="gpt-input px-4 py-3 text-sm"
+                    className="gpt-input px-4 py-3 text-sm field-sm"
                 />
                 <input
                     value={title}
                     onChange={(event) => setTitle(event.target.value)}
                     placeholder="Title (optional)"
-                    className="gpt-input px-4 py-3 text-sm min-w-[180px]"
+                    className="gpt-input px-4 py-3 text-sm field-lg"
                 />
                 <button
                     onClick={handleSubmit}

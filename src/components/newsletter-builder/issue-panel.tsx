@@ -42,7 +42,7 @@ export function IssuePanel({
 }: IssuePanelProps) {
     return (
         <section
-            className="gpt-panel p-5 space-y-5"
+            className="gpt-panel p-6 panel-stack"
             onDragOver={(event) => event.preventDefault()}
             onDrop={onDropEnd}
             id={`issue-panel-${type}`}
@@ -58,19 +58,19 @@ export function IssuePanel({
                         type="date"
                         value={issueDate}
                         onChange={(event) => onDateChange(event.target.value)}
-                        className="gpt-input px-4 py-2 text-sm w-full max-w-[170px]"
+                        className="gpt-input px-4 py-2 text-sm field-sm"
                     />
                     <input
                         placeholder="Subject line"
                         value={subject}
                         onChange={(event) => onSubjectChange(event.target.value)}
-                        className="gpt-input px-4 py-2 text-sm font-medium w-full max-w-[260px]"
+                        className="gpt-input px-4 py-2 text-sm font-medium field-md"
                     />
                     <input
                         placeholder="Preview text"
                         value={previewText}
                         onChange={(event) => onPreviewTextChange(event.target.value)}
-                        className="gpt-input px-4 py-2 text-sm w-full max-w-[320px]"
+                        className="gpt-input px-4 py-2 text-sm field-lg"
                     />
                 </div>
             </div>

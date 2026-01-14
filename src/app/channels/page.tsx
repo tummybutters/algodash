@@ -8,7 +8,7 @@ export default async function ChannelsPage() {
     const { data: channels } = await getChannels();
 
     return (
-        <div className="space-y-6">
+        <div className="page-stack">
             <div className="space-y-1">
                 <h1 className="text-2xl font-semibold text-card-foreground">
                     Manage Channels

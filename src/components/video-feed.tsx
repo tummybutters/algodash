@@ -103,7 +103,7 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
     };
 
     return (
-        <div className="space-y-8">
+        <div className="page-stack">
             <div className="flex flex-wrap items-start justify-between gap-6">
                 <div className="space-y-1">
                     {title && <h1 className="text-2xl font-semibold text-card-foreground">{title}</h1>}
@@ -120,7 +120,7 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
                 filters={filters}
             />
 
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {videos.map((video, index) => (
                     <VideoCard
                         key={video.id}

@@ -12,7 +12,7 @@ type FavoritesPanelProps = {
 
 export function FavoritesPanel({ items, isPending, onQuickAdd, onDragStart }: FavoritesPanelProps) {
     return (
-        <section className="gpt-panel p-5 space-y-4">
+        <section className="gpt-panel p-6 panel-stack">
             <div className="flex items-center justify-between gap-4">
                 <h2 className="text-lg font-semibold text-card-foreground">Favorites</h2>
                 <span className="text-xs text-muted-foreground">Drag to add</span>

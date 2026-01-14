@@ -19,7 +19,7 @@ export default async function Home() {
     return (
         <div>
             {videos.length === 0 && channels.length === 0 ? (
-                <div className="gpt-panel flex flex-col items-center justify-center py-20 px-10 text-center">
+                <div className="gpt-panel content-rail-narrow mx-auto flex flex-col items-center justify-center py-20 px-10 text-center">
                     <h2 className="text-2xl font-semibold text-card-foreground mb-2">
                         No videos yet
                     </h2>
