@@ -601,6 +601,8 @@ body {
   box-shadow: var(--shadow-lg);
   max-height: 90vh;
   overflow: hidden;
+  position: relative;
+  z-index: 101;
 }
 
 .gpt-modal-header {
