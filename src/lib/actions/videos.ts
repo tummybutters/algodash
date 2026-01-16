@@ -8,6 +8,7 @@ const TRANSCRIPT_API_URL = 'https://transcriptapi.com/api/v2/youtube/transcript'
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const ANALYSIS_MODEL = 'google/gemini-3-flash-preview';
+const ANALYSIS_MAX_TOKENS = 1600;
 const ANALYSIS_SYSTEM_PROMPT = `You are an analytical extraction engine.
 You do not generate new ideas.
 You do not improve, extend, or reinterpret the speaker's claims.
@@ -505,7 +506,7 @@ export async function retryAnalysis(id: string): Promise<{ status: ProcessStatus
             body: JSON.stringify({
                 model: ANALYSIS_MODEL,
                 temperature: 0.2,
-                max_tokens: 900,
+                max_tokens: ANALYSIS_MAX_TOKENS,
                 messages: [
                     { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
                     { role: 'user', content: `Transcript:\n${video.transcript_text}` },
@@ -560,8 +561,14 @@ export async function retryAnalysis(id: string): Promise<{ status: ProcessStatus
         return { status: 'failed' };
     }
 
-    const content = (payload as { choices?: Array<{ message?: { content?: string } }> } | null)
+    const finishReason = (payload as { choices?: Array<{ finish_reason?: string }> } | null)
+        ?.choices?.[0]?.finish_reason;
+    let content = (payload as { choices?: Array<{ message?: { content?: string } }> } | null)
         ?.choices?.[0]?.message?.content?.trim();
+
+    if (content && finishReason === 'length') {
+        content = `${content}\n\n[Output truncated - increase max_tokens to capture full response.]`;
+    }
 
     if (!content) {
         const { error: updateError } = await supabase
