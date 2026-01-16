@@ -8,7 +8,7 @@ const TRANSCRIPT_API_URL = 'https://transcriptapi.com/api/v2/youtube/transcript'
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
 const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const ANALYSIS_MODEL = 'google/gemini-3-flash-preview';
-const ANALYSIS_MAX_TOKENS = 1600;
+const ANALYSIS_MAX_TOKENS = 2500;
 const ANALYSIS_SYSTEM_PROMPT = `You are an analytical extraction engine.
 You do not generate new ideas.
 You do not improve, extend, or reinterpret the speaker's claims.
