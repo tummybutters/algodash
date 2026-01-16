@@ -29,6 +29,7 @@ export function ManualVideoForm({
     const [title, setTitle] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
+    const [showDetails, setShowDetails] = useState(false);
     const canSubmit = videoUrl.trim().length > 0 && publishedAt.length > 0;
 
     const channelOptions = useMemo(
@@ -37,6 +38,7 @@ export function ManualVideoForm({
     );
 
     const handleSubmit = () => {
+        if (!canSubmit || isPending) return;
         setError(null);
 
         startTransition(async () => {
@@ -61,59 +63,84 @@ export function ManualVideoForm({
     };
 
     return (
-        <div className="gpt-panel p-6 panel-stack content-rail">
-            <div>
-                <h2 className="text-lg font-semibold text-card-foreground">Add episode by URL</h2>
-                <p className="text-sm text-muted-foreground">Manually add a video to your library.</p>
+        <form
+            className="gpt-panel p-6 panel-stack content-rail"
+            onSubmit={(event) => {
+                event.preventDefault();
+                handleSubmit();
+            }}
+        >
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <h2 className="text-lg font-semibold text-card-foreground">Add to favorites</h2>
+                    <p className="text-sm text-muted-foreground">Paste a YouTube link and tap save.</p>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setShowDetails((prev) => !prev)}
+                    className="gpt-button-ghost text-sm px-4 py-2"
+                >
+                    {showDetails ? 'Hide details' : 'Add details'}
+                </button>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3">
-                <div className="gpt-input-wrapper field-flex">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="gpt-input-wrapper field-flex w-full">
                     <Link2 size={16} strokeWidth={1.5} className="gpt-input-icon" />
                     <input
+                        type="url"
+                        inputMode="url"
+                        autoCapitalize="off"
+                        autoCorrect="off"
+                        spellCheck="false"
                         value={videoUrl}
                         onChange={(event) => setVideoUrl(event.target.value)}
                         placeholder="YouTube URL or video ID"
-                        className="gpt-input-field"
+                        className="gpt-input-field text-base sm:text-sm"
                     />
                 </div>
-                <select
-                    value={channelId}
-                    onChange={(event) => setChannelId(event.target.value)}
-                    className="gpt-input px-4 py-3 text-sm field-md"
-                >
-                    <option value="">Channel (optional)</option>
-                    {channelOptions.map((channel) => (
-                        <option key={channel.id} value={channel.id}>
-                            {channel.name}
-                        </option>
-                    ))}
-                </select>
-                <input
-                    type="date"
-                    value={publishedAt}
-                    onChange={(event) => setPublishedAt(event.target.value)}
-                    className="gpt-input px-4 py-3 text-sm field-sm"
-                />
-                <input
-                    value={title}
-                    onChange={(event) => setTitle(event.target.value)}
-                    placeholder="Title (optional)"
-                    className="gpt-input px-4 py-3 text-sm field-lg"
-                />
                 <button
-                    onClick={handleSubmit}
+                    type="submit"
                     disabled={isPending || !canSubmit}
-                    className="gpt-button disabled:opacity-50"
+                    className="gpt-button disabled:opacity-50 w-full sm:w-auto"
                 >
                     {isPending ? (
                         <Loader2 size={16} className="animate-spin" />
                     ) : (
                         <Plus size={16} strokeWidth={1.5} />
                     )}
-                    Add
+                    Save
                 </button>
             </div>
+
+            {showDetails && (
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    <select
+                        value={channelId}
+                        onChange={(event) => setChannelId(event.target.value)}
+                        className="gpt-input px-4 py-3 text-sm w-full"
+                    >
+                        <option value="">Channel (optional)</option>
+                        {channelOptions.map((channel) => (
+                            <option key={channel.id} value={channel.id}>
+                                {channel.name}
+                            </option>
+                        ))}
+                    </select>
+                    <input
+                        type="date"
+                        value={publishedAt}
+                        onChange={(event) => setPublishedAt(event.target.value)}
+                        className="gpt-input px-4 py-3 text-sm w-full"
+                    />
+                    <input
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                        placeholder="Title (optional)"
+                        className="gpt-input px-4 py-3 text-sm w-full sm:col-span-2 lg:col-span-1"
+                    />
+                </div>
+            )}
 
             {error && (
                 <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-4 py-2.5 rounded-lg">
@@ -121,6 +148,6 @@ export function ManualVideoForm({
                     {error}
                 </div>
             )}
-        </div>
+        </form>
     );
 }

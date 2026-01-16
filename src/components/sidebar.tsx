@@ -23,34 +23,54 @@ export function Sidebar() {
     };
 
     return (
-        <aside className="sidebar">
-            <div className="sidebar-header">
-                <div className="sidebar-logo">EA</div>
-                <span className="sidebar-title">Executive Algorithm</span>
-            </div>
+        <>
+            <aside className="sidebar">
+                <div className="sidebar-header">
+                    <div className="sidebar-logo">EA</div>
+                    <span className="sidebar-title">Executive Algorithm</span>
+                </div>
 
-            <nav className="sidebar-nav">
-                {NAV_ITEMS.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
-                        >
-                            <item.icon size={18} strokeWidth={1.5} />
-                            <span>{item.label}</span>
-                        </Link>
-                    );
-                })}
+                <nav className="sidebar-nav">
+                    {NAV_ITEMS.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`sidebar-link ${isActive ? 'sidebar-link-active' : ''}`}
+                            >
+                                <item.icon size={18} strokeWidth={1.5} />
+                                <span>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </nav>
+
+                <div className="sidebar-footer">
+                    <button onClick={handleSignOut} className="sidebar-link">
+                        <LogOut size={18} strokeWidth={1.5} />
+                        <span>Sign out</span>
+                    </button>
+                </div>
+            </aside>
+
+            <nav className="mobile-nav" aria-label="Primary">
+                <div className="mobile-nav-list">
+                    {NAV_ITEMS.map((item) => {
+                        const isActive = pathname === item.href;
+                        return (
+                            <Link
+                                key={item.href}
+                                href={item.href}
+                                className={`mobile-nav-link ${isActive ? 'mobile-nav-link-active' : ''}`}
+                            >
+                                <item.icon size={20} strokeWidth={1.5} />
+                                <span>{item.label}</span>
+                            </Link>
+                        );
+                    })}
+                </div>
             </nav>
-
-            <div className="sidebar-footer">
-                <button onClick={handleSignOut} className="sidebar-link">
-                    <LogOut size={18} strokeWidth={1.5} />
-                    <span>Sign out</span>
-                </button>
-            </div>
-        </aside>
+        </>
     );
 }
