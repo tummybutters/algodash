@@ -85,8 +85,8 @@ export function ManualVideoForm({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="gpt-input-wrapper field-flex w-full">
-                    <Link2 size={16} strokeWidth={1.5} className="gpt-input-icon" />
+                <div className="gpt-input-wrapper field-flex w-full input-compact">
+                    <Link2 size={14} strokeWidth={1.5} className="gpt-input-icon" />
                     <input
                         type="url"
                         inputMode="url"

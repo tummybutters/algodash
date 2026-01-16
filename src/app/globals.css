@@ -244,6 +244,22 @@ body {
   visibility: visible;
 }
 
+.gpt-input-wrapper.input-compact {
+  padding: 0 14px;
+  border-radius: 9999px;
+  min-height: 40px;
+}
+
+.gpt-input-wrapper.input-compact .gpt-input-field {
+  padding: 8px 0;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.gpt-input-wrapper.input-compact .gpt-input-icon {
+  color: rgba(255, 255, 255, 0.55);
+}
+
 /* ============================================
    CHATGPT-STYLE PRIMARY BUTTON
    ============================================ */
