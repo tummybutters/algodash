@@ -96,10 +96,27 @@ export function VideoFeed({ initialVideos, initialCount, channels, title, subtit
         return () => observer.disconnect();
     }, [loadMore]);
 
-    const handleExpand = async (id: string): Promise<Pick<Video, 'transcript_text' | 'analysis_text' | 'transcript_error' | 'analysis_error'>> => {
+    const handleExpand = async (
+        id: string
+    ): Promise<Pick<
+        Video,
+        'transcript_text'
+        | 'analysis_text'
+        | 'transcript_error'
+        | 'analysis_error'
+        | 'transcript_status'
+        | 'analysis_status'
+    >> => {
         const { data } = await fetchVideoDetail(supabase, id);
 
-        return data || { transcript_text: null, analysis_text: null, transcript_error: null, analysis_error: null };
+        return data || {
+            transcript_text: null,
+            analysis_text: null,
+            transcript_error: null,
+            analysis_error: null,
+            transcript_status: 'unavailable',
+            analysis_status: 'unavailable',
+        };
     };
 
     return (

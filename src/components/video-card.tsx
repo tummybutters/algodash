@@ -18,16 +18,19 @@ import {
 } from 'lucide-react';
 import { formatDuration } from '@/lib/utils/duration';
 import { updateVideoStatus, retryTranscript, retryAnalysis, deleteVideo } from '@/lib/actions/videos';
-import type { VideoListItem, VideoStatus, ProcessStatus } from '@/types/database';
+import type { VideoListItem, VideoStatus, ProcessStatus, Video } from '@/types/database';
 
 interface VideoCardProps {
     video: VideoListItem;
-    onExpand: (id: string) => Promise<{
-        transcript_text: string | null;
-        analysis_text: string | null;
-        transcript_error: string | null;
-        analysis_error: string | null;
-    }>;
+    onExpand: (id: string) => Promise<Pick<
+        Video,
+        | 'transcript_text'
+        | 'analysis_text'
+        | 'transcript_error'
+        | 'analysis_error'
+        | 'transcript_status'
+        | 'analysis_status'
+    >>;
     index?: number;
 }
 
@@ -64,18 +67,22 @@ function ProcessPill({ status, label }: { status: ProcessStatus; label: string }
 
 export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
     const [isOpen, setIsOpen] = useState(false);
-    const [expandedContent, setExpandedContent] = useState<{
-        transcript_text: string | null;
-        analysis_text: string | null;
-        transcript_error: string | null;
-        analysis_error: string | null;
-    } | null>(null);
+    const [expandedContent, setExpandedContent] = useState<Pick<
+        Video,
+        | 'transcript_text'
+        | 'analysis_text'
+        | 'transcript_error'
+        | 'analysis_error'
+        | 'transcript_status'
+        | 'analysis_status'
+    > | null>(null);
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [activeTab, setActiveTab] = useState<'transcript' | 'summary'>('transcript');
     const [isPending, startTransition] = useTransition();
     const [status, setStatus] = useState<VideoStatus>(video.status);
     const [transcriptStatus, setTranscriptStatus] = useState<ProcessStatus>(video.transcript_status);
     const [analysisStatus, setAnalysisStatus] = useState<ProcessStatus>(video.analysis_status);
+    const summaryText = expandedContent?.analysis_text?.trim();
 
     useEffect(() => {
         setStatus(video.status);
@@ -105,6 +112,8 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
             setIsLoadingDetails(true);
             const content = await onExpand(video.id);
             setExpandedContent(content);
+            setTranscriptStatus(content.transcript_status);
+            setAnalysisStatus(content.analysis_status);
             setIsLoadingDetails(false);
         }
     };
@@ -126,6 +135,8 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                 }
                 const content = await onExpand(video.id);
                 setExpandedContent(content);
+                setTranscriptStatus(content.transcript_status);
+                setAnalysisStatus(content.analysis_status);
             } catch {
                 setTranscriptStatus('failed');
             }
@@ -133,14 +144,26 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
     };
 
     const handleRetrySummary = () => {
+        setActiveTab('summary');
         startTransition(async () => {
             setAnalysisStatus('pending');
             try {
                 await retryAnalysis(video.id);
+                const content = await onExpand(video.id);
+                setExpandedContent(content);
+                setTranscriptStatus(content.transcript_status);
+                setAnalysisStatus(content.analysis_status);
             } catch {
                 setAnalysisStatus('failed');
             }
         });
+    };
+
+    const handleSummaryTab = () => {
+        setActiveTab('summary');
+        if (!summaryText && analysisStatus !== 'pending' && !isLoadingDetails) {
+            handleRetrySummary();
+        }
     };
 
     const handleDelete = () => {
@@ -345,7 +368,7 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                         Transcript
                                     </button>
                                     <button
-                                        onClick={() => setActiveTab('summary')}
+                                        onClick={handleSummaryTab}
                                         className={`gpt-chip ${activeTab === 'summary' ? 'gpt-chip-active' : ''}`}
                                     >
                                         Summary
@@ -395,6 +418,10 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                                     {expandedContent?.transcript_text || 'No transcript content'}
                                                 </pre>
                                             )
+                                        ) : summaryText ? (
+                                            <div className="prose prose-sm prose-invert max-w-none whitespace-pre-wrap">
+                                                {summaryText}
+                                            </div>
                                         ) : analysisStatus === 'failed' ? (
                                             <div className="flex flex-col items-center justify-center py-10 gap-4">
                                                 <AlertCircle className="text-destructive" size={32} strokeWidth={1.5} />
@@ -415,8 +442,16 @@ export function VideoCard({ video, onExpand, index = 0 }: VideoCardProps) {
                                                 <p className="text-muted-foreground text-sm">Summary pending...</p>
                                             </div>
                                         ) : (
-                                            <div className="prose prose-sm prose-invert max-w-none">
-                                                {expandedContent?.analysis_text || 'No summary yet'}
+                                            <div className="flex flex-col items-center justify-center py-10 gap-4 text-center">
+                                                <Sparkles className="text-muted-foreground" size={28} strokeWidth={1.5} />
+                                                <p className="text-muted-foreground text-sm">No summary yet.</p>
+                                                <button
+                                                    onClick={handleRetrySummary}
+                                                    disabled={isPending}
+                                                    className="gpt-button px-4 py-2 text-xs disabled:opacity-50"
+                                                >
+                                                    <Sparkles size={14} strokeWidth={1.5} /> Generate summary
+                                                </button>
                                             </div>
                                         )}
                                     </div>

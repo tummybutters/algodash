@@ -8,7 +8,13 @@ export type VideoFilterParams = Omit<VideoFilters, 'offset' | 'limit'>;
 
 export type VideoDetail = Pick<
     Video,
-    'transcript_text' | 'analysis_text' | 'notes' | 'transcript_error' | 'analysis_error'
+    'transcript_text'
+    | 'analysis_text'
+    | 'notes'
+    | 'transcript_error'
+    | 'analysis_error'
+    | 'transcript_status'
+    | 'analysis_status'
 >;
 
 export function applyVideoListFilters<
@@ -81,7 +87,7 @@ export async function fetchVideoDetail(
 ): Promise<{ data: VideoDetail | null; error: Error | null }> {
     const { data, error } = await supabase
         .from('videos')
-        .select('transcript_text, analysis_text, notes, transcript_error, analysis_error')
+        .select('transcript_text, analysis_text, notes, transcript_error, analysis_error, transcript_status, analysis_status')
         .eq('id', id)
         .single();
 

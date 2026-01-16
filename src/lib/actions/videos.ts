@@ -6,6 +6,170 @@ import type { VideoStatus, ProcessStatus } from '@/types/database';
 
 const TRANSCRIPT_API_URL = 'https://transcriptapi.com/api/v2/youtube/transcript';
 const YOUTUBE_API_BASE = 'https://www.googleapis.com/youtube/v3';
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const ANALYSIS_MODEL = 'google/gemini-3-flash-preview';
+const ANALYSIS_SYSTEM_PROMPT = `You are an analytical extraction engine.
+You do not generate new ideas.
+You do not improve, extend, or reinterpret the speaker's claims.
+You only extract and re-express what is present in the transcript.
+
+Your task is to surface existing signal, not to add insight.
+
+Epistemic Constraints (Critical)
+
+Do not introduce novel claims, examples, or analogies.
+
+Do not speculate about intent, motivation, or beliefs unless the speaker makes them explicit.
+
+Do not "steelman" or clean up arguments.
+
+Do not resolve ambiguity - preserve it.
+
+Inference is allowed only when it is:
+
+Directly implied by repeated statements and
+
+Would be obvious to a careful human reader
+
+Any inference must be clearly labeled as inference, not fact.
+
+If a section cannot be populated without adding new information, leave it sparse or state that the signal is weak.
+
+Objective
+
+Given a long-form transcript (e.g. tech, markets, power, AI), extract latent but present intellectual signal such as:
+
+Explicit beliefs
+
+Repeated assumptions
+
+Non-consensus statements
+
+Predictions the speaker actually makes
+
+Frameworks the speaker explicitly uses
+
+Cross-domain connections the speaker themselves draws
+
+You are not summarizing content.
+You are extracting how the speaker thinks, as evidenced by what they say.
+
+Required Output Structure
+1. Explicit Worldview Statements
+
+List only statements the speaker directly makes (or restates multiple times) about:
+
+Power
+
+Technology
+
+Incentives
+
+Human behavior
+
+Markets or institutions
+
+Format as declarative statements.
+If a statement is paraphrased, keep it faithful to the original meaning.
+
+If confidence is unclear, say so.
+
+2. Non-Consensus or Contrarian Claims
+
+Include only claims that:
+
+Are explicitly stated by the speaker
+
+Clearly diverge from mainstream or commonly accepted views
+
+For each:
+
+The claim (paraphrased faithfully)
+
+What it contrasts with (briefly)
+
+Whether the speaker asserts it strongly or tentatively
+
+Do not label something contrarian unless the contrast is obvious.
+
+3. Predictions & Forecasts
+
+Extract:
+
+Explicit predictions
+
+Conditional forecasts ("if X, then Y")
+
+For each:
+
+Prediction
+
+Time horizon (if stated)
+
+Degree of certainty expressed by the speaker
+
+Do not infer predictions from tone alone.
+
+4. Stated Frameworks & Models
+
+Extract only frameworks the speaker actually uses, such as:
+
+Explicit mental models
+
+Repeated explanatory lenses
+
+Named or described ways of reasoning
+
+For each:
+
+Framework (one sentence)
+
+Where it appears in the transcript
+
+Do not invent or generalize frameworks beyond what is said.
+
+5. Cross-Domain Connections (Explicit Only)
+
+Include connections only if the speaker draws them directly, such as:
+
+This is similar to...
+
+The same thing happens in...
+
+You see this in [other domain]
+
+Explain the connection using the speaker's own logic.
+
+6. High-Signal Quotable Nuggets
+
+Extract up to 5 short passages or paraphrases that:
+
+Are unusually precise
+
+Reframe an issue
+
+Reveal a core belief or prediction
+
+Do not rewrite for cleverness. Preserve intent.
+
+7. Analyst Notes (Boundary-Aware)
+
+Briefly note:
+
+Where the transcript is ambiguous
+
+Where signal is thin or repetitive
+
+Where inference was unavoidable (clearly marked)
+
+If the transcript contains mostly surface-level discussion, say so plainly.
+
+Operating Principle
+
+Your job is to act as a lossless intellectual compressor.
+
+If insight is not present, do not manufacture it.
+Silence or sparsity is preferable to distortion.`;
 
 type YoutubeVideoResponse = {
     items?: Array<{
@@ -255,21 +419,187 @@ export async function retryTranscript(id: string): Promise<{ status: ProcessStat
 export async function retryAnalysis(id: string): Promise<{ status: ProcessStatus }> {
     const supabase = createServiceClient();
 
-    const { error } = await supabase
+    const { data: video, error: loadError } = await supabase
+        .from('videos')
+        .select('transcript_text, analysis_attempts')
+        .eq('id', id)
+        .single();
+
+    if (loadError || !video) {
+        throw new Error(`Failed to load video for analysis: ${loadError?.message ?? 'Not found'}`);
+    }
+
+    const nextAttempts = (video.analysis_attempts ?? 0) + 1;
+    const apiKey = process.env.OPENROUTER_API_KEY;
+
+    if (!video.transcript_text || video.transcript_text.trim().length === 0) {
+        const { error: updateError } = await supabase
+            .from('videos')
+            .update({
+                analysis_status: 'failed',
+                analysis_error: 'Transcript missing for summary generation.',
+                analysis_attempts: nextAttempts,
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            throw new Error(`Failed to update analysis status: ${updateError.message}`);
+        }
+
+        revalidateCoreViews();
+        revalidatePath('/import');
+        return { status: 'failed' };
+    }
+
+    if (!apiKey) {
+        const { error: updateError } = await supabase
+            .from('videos')
+            .update({
+                analysis_status: 'failed',
+                analysis_error: 'Missing OPENROUTER_API_KEY',
+                analysis_attempts: nextAttempts,
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            throw new Error(`Failed to update analysis status: ${updateError.message}`);
+        }
+
+        revalidateCoreViews();
+        revalidatePath('/import');
+        return { status: 'failed' };
+    }
+
+    const { error: pendingError } = await supabase
         .from('videos')
         .update({
             analysis_status: 'pending',
             analysis_error: null,
+            analysis_attempts: nextAttempts,
         })
         .eq('id', id);
 
-    if (error) {
-        throw new Error(`Failed to retry analysis: ${error.message}`);
+    if (pendingError) {
+        throw new Error(`Failed to mark analysis pending: ${pendingError.message}`);
+    }
+
+    const referer =
+        process.env.NEXT_PUBLIC_APP_URL
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+    const headers: Record<string, string> = {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Title': 'Executive Algorithm',
+    };
+
+    if (referer) {
+        headers['HTTP-Referer'] = referer;
+    }
+
+    let response: Response;
+    try {
+        response = await fetch(OPENROUTER_API_URL, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify({
+                model: ANALYSIS_MODEL,
+                temperature: 0.2,
+                max_tokens: 900,
+                messages: [
+                    { role: 'system', content: ANALYSIS_SYSTEM_PROMPT },
+                    { role: 'user', content: `Transcript:\n${video.transcript_text}` },
+                ],
+            }),
+        });
+    } catch (fetchError) {
+        const message = fetchError instanceof Error ? fetchError.message : 'Summary request failed';
+        const { error: updateError } = await supabase
+            .from('videos')
+            .update({
+                analysis_status: 'failed',
+                analysis_error: message,
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            throw new Error(`Failed to update analysis status: ${updateError.message}`);
+        }
+
+        revalidateCoreViews();
+        revalidatePath('/import');
+        return { status: 'failed' };
+    }
+
+    let payload: unknown = null;
+    try {
+        payload = await response.json();
+    } catch {
+        payload = null;
+    }
+
+    if (!response.ok) {
+        const detail =
+            typeof (payload as { error?: { message?: string } } | null)?.error?.message === 'string'
+                ? (payload as { error: { message: string } }).error.message
+                : `OpenRouter error (${response.status})`;
+        const { error: updateError } = await supabase
+            .from('videos')
+            .update({
+                analysis_status: 'failed',
+                analysis_error: detail,
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            throw new Error(`Failed to update analysis status: ${updateError.message}`);
+        }
+
+        revalidateCoreViews();
+        revalidatePath('/import');
+        return { status: 'failed' };
+    }
+
+    const content = (payload as { choices?: Array<{ message?: { content?: string } }> } | null)
+        ?.choices?.[0]?.message?.content?.trim();
+
+    if (!content) {
+        const { error: updateError } = await supabase
+            .from('videos')
+            .update({
+                analysis_status: 'failed',
+                analysis_error: 'Summary response was empty.',
+            })
+            .eq('id', id);
+
+        if (updateError) {
+            throw new Error(`Failed to update analysis status: ${updateError.message}`);
+        }
+
+        revalidateCoreViews();
+        revalidatePath('/import');
+        return { status: 'failed' };
+    }
+
+    const { error: updateError } = await supabase
+        .from('videos')
+        .update({
+            analysis_status: 'success',
+            analysis_error: null,
+            analysis_text: content,
+            analysis_json: payload,
+            analysis_model: ANALYSIS_MODEL,
+            analysis_generated_at: new Date().toISOString(),
+        })
+        .eq('id', id);
+
+    if (updateError) {
+        throw new Error(`Failed to update summary: ${updateError.message}`);
     }
 
     revalidateCoreViews();
     revalidatePath('/import');
-    return { status: 'pending' };
+    return { status: 'success' };
 }
 
 export async function updateVideoNotes(id: string, notes: string) {

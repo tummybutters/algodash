@@ -20,7 +20,16 @@ export async function getVideosForTriage(filters: VideoFilters): Promise<{
  * Full video detail (for expanded view)
  */
 export async function getVideoDetail(id: string): Promise<{
-    data: Pick<Video, 'transcript_text' | 'analysis_text' | 'notes' | 'transcript_error' | 'analysis_error'> | null;
+    data: Pick<
+        Video,
+        | 'transcript_text'
+        | 'analysis_text'
+        | 'notes'
+        | 'transcript_error'
+        | 'analysis_error'
+        | 'transcript_status'
+        | 'analysis_status'
+    > | null;
     error: Error | null;
 }> {
     const supabase = await createClient();
