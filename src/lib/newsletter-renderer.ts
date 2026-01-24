@@ -179,7 +179,7 @@ export function renderNewsletterHtml(
                 <tr>
                   <td>
                     <p style="margin: 0; font-size: 12px; font-weight: 700; color: #94a3b8; letter-spacing: 0.28em; text-transform: uppercase;">
-                      Executive Algorithm
+                      The Conviction Index
                     </p>
                     <p style="margin: 12px 0 0; font-size: 22px; font-weight: 600; color: #f8fafc; letter-spacing: -0.02em;">
                       ${typeLabel}
@@ -249,7 +249,7 @@ export function renderNewsletterText(
     const typeLabel = isUrgent ? 'Urgent Signals' : 'Evergreen Signals';
 
     const lines: string[] = [
-        'Executive Algorithm',
+        'The Conviction Index',
         `${typeLabel} — ${formatDate(issue.issue_date)}`,
         '',
     ];

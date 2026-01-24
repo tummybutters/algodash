@@ -27,7 +27,7 @@ export function Sidebar() {
             <aside className="sidebar">
                 <div className="sidebar-header">
                     <div className="sidebar-logo">EA</div>
-                    <span className="sidebar-title">Executive Algorithm</span>
+                    <span className="sidebar-title">The Conviction Index</span>
                 </div>
 
                 <nav className="sidebar-nav">

@@ -491,7 +491,7 @@ export async function retryAnalysis(id: string): Promise<{ status: ProcessStatus
     const headers: Record<string, string> = {
         Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
-        'X-Title': 'Executive Algorithm',
+        'X-Title': 'The Conviction Index',
     };
 
     if (referer) {

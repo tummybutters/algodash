@@ -1,7 +1,7 @@
 import mailchimp from '@mailchimp/mailchimp_marketing';
 import type { ESPProvider, ESPCampaign, ESPPayload } from './types';
 
-const DEFAULT_FROM_NAME = 'Executive Algorithm';
+const DEFAULT_FROM_NAME = 'The Conviction Index';
 const DEFAULT_REPLY_TO = 'hello@example.com';
 
 // Initialize Mailchimp client
